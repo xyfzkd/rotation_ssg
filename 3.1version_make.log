@@ -1,0 +1,392 @@
+Scanning dependencies of target copy_scripts
+[  0%] Built target copy_scripts
+[  1%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/cuda_kernels/relion_gpu_util_generated_helper.cu.o
+[  1%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_ml_optimiser.cu.o
+[  2%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_autopicker.cu.o
+[  2%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_helper_functions.cu.o
+[  2%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_backprojector.cu.o
+[  3%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_projector_plan.cu.o
+[  3%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_benchmark_utils.cu.o
+[  3%] Building NVCC (Device) object src/apps/CMakeFiles/relion_gpu_util.dir/__/acc/cuda/relion_gpu_util_generated_cuda_projector.cu.o
+Scanning dependencies of target relion_gpu_util
+[  3%] Linking CXX static library ../../lib/librelion_gpu_util.a
+[  3%] Built target relion_gpu_util
+Scanning dependencies of target relion_lib
+[  4%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/backprojector.cpp.o
+[  4%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/ml_optimiser_mpi.cpp.o
+[  4%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/micrograph_model.cpp.o
+[  5%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/time.cpp.o
+[  5%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/local_symmetry.cpp.o
+[  6%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/particle_subtractor.cpp.o
+[  6%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/reconstructor_mpi.cpp.o
+[  6%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/healpix_sampling.cpp.o
+[  7%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/projector.cpp.o
+[  7%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/matrix1d.cpp.o
+[  8%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/symmetries.cpp.o
+[  8%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/numerical_recipes.cpp.o
+[  8%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/exp_model.cpp.o
+[  9%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/assembly.cpp.o
+[  9%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/preprocessing_mpi.cpp.o
+[  9%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/renderEER.cpp.o
+/data/xieyufeng/relion/src/renderEER.cpp: In member function 'void EERRenderer::readLegacy(FILE*)':
+/data/xieyufeng/relion/src/renderEER.cpp:182:41: warning: ignoring return value of 'size_t fread(void*, size_t, size_t, FILE*)', declared with attribute warn_unused_result [-Wunused-result]
+  fread(buf, sizeof(char), file_size, fh);
+                                         ^
+[ 10%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/helix.cpp.o
+[ 10%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/funcs.cpp.o
+[ 11%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/motioncorr_runner.cpp.o
+[ 11%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/reconstructor.cpp.o
+[ 11%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/flex_analyser.cpp.o
+[ 12%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/scheduler.cpp.o
+[ 12%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/multidim_array.cpp.o
+[ 13%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/args.cpp.o
+[ 13%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/motioncorr_runner_mpi.cpp.o
+[ 13%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/metadata_label.cpp.o
+[ 14%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/parallel.cpp.o
+[ 14%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/metadata_container.cpp.o
+[ 15%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/pipeliner.cpp.o
+[ 15%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/error.cpp.o
+[ 15%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/mask.cpp.o
+[ 16%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/tabfuncs.cpp.o
+[ 16%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/ml_optimiser.cpp.o
+[ 16%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/pipeline_jobs.cpp.o
+[ 17%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/ctffind_runner_mpi.cpp.o
+[ 17%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/transformations.cpp.o
+[ 18%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/preprocessing.cpp.o
+[ 18%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/complex.cpp.o
+[ 18%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/autopicker.cpp.o
+[ 19%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/ml_model.cpp.o
+[ 19%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/fftw.cpp.o
+[ 20%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/matrix2d.cpp.o
+[ 20%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/ctf.cpp.o
+[ 20%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/strings.cpp.o
+[ 21%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/filename.cpp.o
+[ 21%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/pipeline_control.cpp.o
+[ 22%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/metadata_table.cpp.o
+[ 22%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/local_symmetry_mpi.cpp.o
+[ 22%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/memory.cpp.o
+[ 23%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/euler.cpp.o
+[ 23%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/image.cpp.o
+[ 23%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/mpi.cpp.o
+[ 24%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/CPlot2D.cpp.o
+[ 24%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/autopicker_mpi.cpp.o
+[ 25%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/helix_inimodel2d.cpp.o
+[ 25%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/tiff_converter.cpp.o
+/data/xieyufeng/relion/src/tiff_converter.cpp: In member function 'void TIFFConverter::estimate(FileName)':
+/data/xieyufeng/relion/src/tiff_converter.cpp:144:111: warning: format '%d' expects argument of type 'int', but argument 7 has type 'long int' [-Wformat=]
+          fn_movie.c_str(), iframe + 1, changed, error, negative, YXSIZE(defects()) - stable, YXSIZE(defects()));
+                                                                                                               ^
+/data/xieyufeng/relion/src/tiff_converter.cpp:144:111: warning: format '%d' expects argument of type 'int', but argument 8 has type 'long int' [-Wformat=]
+/data/xieyufeng/relion/src/tiff_converter.cpp: In member function 'int TIFFConverter::checkMRCtype(FileName)':
+/data/xieyufeng/relion/src/tiff_converter.cpp:311:40: warning: ignoring return value of 'size_t fread(void*, size_t, size_t, FILE*)', declared with attribute warn_unused_result [-Wunused-result]
+  fread(headers, sizeof(int), 24, mrcin);
+                                        ^
+/data/xieyufeng/relion/src/tiff_converter.cpp: In member function 'void TIFFConverter::initialise(int, int)':
+/data/xieyufeng/relion/src/tiff_converter.cpp:369:59: warning: ignoring return value of 'int system(const char*)', declared with attribute warn_unused_result [-Wunused-result]
+   system(("mkdir -p " + fn_out.beforeLastOf("/")).c_str());
+                                                           ^
+/data/xieyufeng/relion/src/tiff_converter.cpp: In member function 'void TIFFConverter::run()':
+/data/xieyufeng/relion/src/tiff_converter.cpp:532:61: warning: ignoring return value of 'int system(const char*)', declared with attribute warn_unused_result [-Wunused-result]
+    system(("mkdir -p " + fn_tiff.beforeLastOf("/")).c_str());
+                                                             ^
+[ 25%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/postprocessing.cpp.o
+[ 26%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/ctffind_runner.cpp.o
+[ 26%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/__/macros.cpp.o
+[ 27%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/Healpix_2.15a/cxxutils.cc.o
+[ 27%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/Healpix_2.15a/healpix_base.cc.o
+[ 27%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/volume_converter.cpp.o
+[ 28%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/stack_helper.cpp.o
+[ 28%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/interpolation.cpp.o
+[ 29%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/resampling_helper.cpp.o
+[ 29%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/noise_helper.cpp.o
+[ 29%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/volume_integration.cpp.o
+[ 30%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/distribution_helper.cpp.o
+[ 30%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/Gaussian_pyramid.cpp.o
+[ 30%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/svd_helper.cpp.o
+[ 31%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/fftw_helper.cpp.o
+[ 31%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/refinement_helper.cpp.o
+[ 32%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/aberration_fit.cpp.o
+[ 32%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/damage_helper.cpp.o
+[ 32%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf_helper.cpp.o
+[ 33%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/t_complex.cpp.o
+[ 33%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/reference_map.cpp.o
+[ 34%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/parallel_ft.cpp.o
+[ 34%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/structure_tensor.cpp.o
+[ 34%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/spectral_helper.cpp.o
+[ 35%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/Fourier_helper.cpp.o
+[ 35%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/micrograph_handler.cpp.o
+[ 36%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/image_log.cpp.o
+[ 36%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/local_motion_fit.cpp.o
+[ 36%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/convolution_helper.cpp.o
+[ 37%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/legacy_obs_model.cpp.o
+[ 37%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/fsc_helper.cpp.o
+[ 37%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/new_ft.cpp.o
+[ 38%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/complex_io.cpp.o
+[ 38%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/slice_helper.cpp.o
+[ 39%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/jaz_config.cpp.o
+[ 39%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/obs_model.cpp.o
+[ 39%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/vtk_helper.cpp.o
+[ 40%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/optimization/nelder_mead.cpp.o
+[ 40%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/optimization/optimization.cpp.o
+[ 41%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/optimization/lbfgs.cpp.o
+[ 41%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/optimization/gradient_descent.cpp.o
+[ 41%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/defocus_helper.cpp.o
+[ 42%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/ctf_refiner.cpp.o
+[ 42%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/aberration_estimator.cpp.o
+[ 43%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/modular_ctf_optimisation.cpp.o
+[ 43%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/defocus_estimator.cpp.o
+[ 43%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/magnification_estimator.cpp.o
+[ 44%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/tilt_estimator.cpp.o
+[ 44%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/tilt_helper.cpp.o
+[ 44%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/magnification_helper.cpp.o
+[ 45%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/equation2x2.cpp.o
+[ 45%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/delocalisation_helper.cpp.o
+[ 46%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/bfactor_refiner.cpp.o
+[ 46%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/ctf/ctf_refiner_mpi.cpp.o
+[ 46%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/motion_estimator.cpp.o
+[ 47%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/motion_param_estimator.cpp.o
+[ 47%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/motion_refiner_mpi.cpp.o
+[ 48%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/motion_helper.cpp.o
+[ 48%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/motion_refiner.cpp.o
+[ 48%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/gp_motion_fit.cpp.o
+[ 49%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/alignment_set.cpp.o
+[ 49%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/three_hyperparameter_fit.cpp.o
+[ 50%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/frame_recombiner.cpp.o
+[ 50%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/motion/two_hyperparameter_fit.cpp.o
+[ 50%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/math/Zernike.cpp.o
+[ 51%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/img_proc/image_op.cpp.o
+[ 51%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/img_proc/filter_helper.cpp.o
+[ 51%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/img_proc/color_helper.cpp.o
+[ 52%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/tomo/projection_helper.cpp.o
+[ 52%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/tomo/imod_helper.cpp.o
+[ 53%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/tomo/tomo_stack.cpp.o
+[ 53%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/tomo/backprojection_helper.cpp.o
+[ 53%] Building CXX object src/apps/CMakeFiles/relion_lib.dir/__/jaz/io/star_converter.cpp.o
+[ 54%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyevv3.c.o
+[ 54%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyevj3.c.o
+[ 55%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsytrd3.c.o
+[ 55%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyev2.c.o
+[ 55%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/slvsec3.c.o
+[ 56%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyevq3.c.o
+[ 56%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyevh3.c.o
+[ 57%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyevd3.c.o
+[ 57%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/d3x3/dsyevc3.c.o
+[ 57%] Building C object src/apps/CMakeFiles/relion_lib.dir/__/jaz/lbfgs/lbfgs.c.o
+[ 58%] Linking CXX static library ../../lib/librelion_lib.a
+[ 58%] Built target relion_lib
+Scanning dependencies of target flex_analyse
+[ 59%] Building CXX object src/apps/CMakeFiles/flex_analyse.dir/flex_analyse.cpp.o
+[ 59%] Linking CXX executable ../../bin/relion_flex_analyse
+[ 59%] Built target flex_analyse
+Scanning dependencies of target particle_subtract
+[ 59%] Building CXX object src/apps/CMakeFiles/particle_subtract.dir/particle_subtract.cpp.o
+[ 60%] Linking CXX executable ../../bin/relion_particle_subtract
+[ 60%] Built target particle_subtract
+Scanning dependencies of target run_ctffind_mpi
+[ 61%] Building CXX object src/apps/CMakeFiles/run_ctffind_mpi.dir/run_ctffind_mpi.cpp.o
+[ 61%] Linking CXX executable ../../bin/relion_run_ctffind_mpi
+[ 61%] Built target run_ctffind_mpi
+Scanning dependencies of target autopick
+[ 62%] Building CXX object src/apps/CMakeFiles/autopick.dir/autopick.cpp.o
+[ 62%] Linking CXX executable ../../bin/relion_autopick
+[ 62%] Built target autopick
+Scanning dependencies of target particle_FCC
+[ 62%] Building CXX object src/apps/CMakeFiles/particle_FCC.dir/particle_FCC.cpp.o
+[ 62%] Linking CXX executable ../../bin/relion_particle_FCC
+[ 62%] Built target particle_FCC
+Scanning dependencies of target motion_refine_mpi
+[ 62%] Building CXX object src/apps/CMakeFiles/motion_refine_mpi.dir/motion_refine_mpi.cpp.o
+[ 63%] Linking CXX executable ../../bin/relion_motion_refine_mpi
+[ 63%] Built target motion_refine_mpi
+Scanning dependencies of target ctf_refine_mpi
+[ 63%] Building CXX object src/apps/CMakeFiles/ctf_refine_mpi.dir/ctf_refine_mpi.cpp.o
+[ 64%] Linking CXX executable ../../bin/relion_ctf_refine_mpi
+[ 64%] Built target ctf_refine_mpi
+Scanning dependencies of target motion_refine
+[ 65%] Building CXX object src/apps/CMakeFiles/motion_refine.dir/motion_refine.cpp.o
+[ 65%] Linking CXX executable ../../bin/relion_motion_refine
+[ 65%] Built target motion_refine
+Scanning dependencies of target convert_to_tiff
+[ 65%] Building CXX object src/apps/CMakeFiles/convert_to_tiff.dir/convert_to_tiff.cpp.o
+[ 65%] Linking CXX executable ../../bin/relion_convert_to_tiff
+[ 65%] Built target convert_to_tiff
+Scanning dependencies of target postprocess_mpi
+[ 65%] Building CXX object src/apps/CMakeFiles/postprocess_mpi.dir/postprocess_mpi.cpp.o
+[ 66%] Linking CXX executable ../../bin/relion_postprocess_mpi
+[ 66%] Built target postprocess_mpi
+Scanning dependencies of target mask_create
+[ 66%] Building CXX object src/apps/CMakeFiles/mask_create.dir/mask_create.cpp.o
+[ 66%] Linking CXX executable ../../bin/relion_mask_create
+[ 66%] Built target mask_create
+Scanning dependencies of target reposition
+[ 66%] Building CXX object src/apps/CMakeFiles/reposition.dir/reposition.cpp.o
+[ 66%] Linking CXX executable ../../bin/relion_reposition
+[ 66%] Built target reposition
+Scanning dependencies of target run_ctffind
+[ 67%] Building CXX object src/apps/CMakeFiles/run_ctffind.dir/run_ctffind.cpp.o
+[ 67%] Linking CXX executable ../../bin/relion_run_ctffind
+[ 67%] Built target run_ctffind
+Scanning dependencies of target run_motioncorr_mpi
+[ 67%] Building CXX object src/apps/CMakeFiles/run_motioncorr_mpi.dir/run_motioncorr_mpi.cpp.o
+[ 68%] Linking CXX executable ../../bin/relion_run_motioncorr_mpi
+[ 68%] Built target run_motioncorr_mpi
+Scanning dependencies of target estimate_gain
+[ 68%] Building CXX object src/apps/CMakeFiles/estimate_gain.dir/estimate_gain.cpp.o
+[ 69%] Linking CXX executable ../../bin/relion_estimate_gain
+[ 69%] Built target estimate_gain
+Scanning dependencies of target helix_toolbox
+[ 69%] Building CXX object src/apps/CMakeFiles/helix_toolbox.dir/helix_toolbox.cpp.o
+[ 70%] Linking CXX executable ../../bin/relion_helix_toolbox
+[ 70%] Built target helix_toolbox
+Scanning dependencies of target tiltpair_plot
+[ 70%] Building CXX object src/apps/CMakeFiles/tiltpair_plot.dir/tiltpair_plot.cpp.o
+[ 71%] Linking CXX executable ../../bin/relion_tiltpair_plot
+[ 71%] Built target tiltpair_plot
+Scanning dependencies of target external_reconstruct
+[ 71%] Building CXX object src/apps/CMakeFiles/external_reconstruct.dir/external_reconstruct.cpp.o
+[ 72%] Linking CXX executable ../../bin/relion_external_reconstruct
+[ 72%] Built target external_reconstruct
+Scanning dependencies of target tomo_test
+[ 72%] Building CXX object src/apps/CMakeFiles/tomo_test.dir/tomo_test.cpp.o
+[ 73%] Linking CXX executable ../../bin/relion_tomo_test
+[ 73%] Built target tomo_test
+Scanning dependencies of target localsym
+[ 73%] Building CXX object src/apps/CMakeFiles/localsym.dir/localsym.cpp.o
+[ 74%] Linking CXX executable ../../bin/relion_localsym
+[ 74%] Built target localsym
+Scanning dependencies of target particle_symmetry_expand
+[ 75%] Building CXX object src/apps/CMakeFiles/particle_symmetry_expand.dir/particle_symmetry_expand.cpp.o
+[ 75%] Linking CXX executable ../../bin/relion_particle_symmetry_expand
+[ 75%] Built target particle_symmetry_expand
+Scanning dependencies of target ctf_refine
+[ 75%] Building CXX object src/apps/CMakeFiles/ctf_refine.dir/ctf_refine.cpp.o
+[ 76%] Linking CXX executable ../../bin/relion_ctf_refine
+[ 76%] Built target ctf_refine
+Scanning dependencies of target image_handler
+[ 76%] Building CXX object src/apps/CMakeFiles/image_handler.dir/image_handler.cpp.o
+[ 76%] Linking CXX executable ../../bin/relion_image_handler
+[ 76%] Built target image_handler
+Scanning dependencies of target helix_inimodel2d
+[ 76%] Building CXX object src/apps/CMakeFiles/helix_inimodel2d.dir/helix_inimodel2d.cpp.o
+[ 77%] Linking CXX executable ../../bin/relion_helix_inimodel2d
+[ 77%] Built target helix_inimodel2d
+Scanning dependencies of target localsym_mpi
+[ 77%] Building CXX object src/apps/CMakeFiles/localsym_mpi.dir/localsym_mpi.cpp.o
+[ 78%] Linking CXX executable ../../bin/relion_localsym_mpi
+[ 78%] Built target localsym_mpi
+Scanning dependencies of target ctf_toolbox
+[ 78%] Building CXX object src/apps/CMakeFiles/ctf_toolbox.dir/ctf_toolbox.cpp.o
+[ 78%] Linking CXX executable ../../bin/relion_ctf_toolbox
+[ 78%] Built target ctf_toolbox
+Scanning dependencies of target ctf_mask_test
+[ 79%] Building CXX object src/apps/CMakeFiles/ctf_mask_test.dir/ctf_mask_test.cpp.o
+[ 79%] Linking CXX executable ../../bin/relion_ctf_mask_test
+[ 79%] Built target ctf_mask_test
+Scanning dependencies of target plot_delocalisation
+[ 80%] Building CXX object src/apps/CMakeFiles/plot_delocalisation.dir/plot_delocalisation.cpp.o
+[ 80%] Linking CXX executable ../../bin/relion_plot_delocalisation
+[ 80%] Built target plot_delocalisation
+Scanning dependencies of target preprocess_mpi
+[ 80%] Building CXX object src/apps/CMakeFiles/preprocess_mpi.dir/preprocess_mpi.cpp.o
+[ 81%] Linking CXX executable ../../bin/relion_preprocess_mpi
+[ 81%] Built target preprocess_mpi
+Scanning dependencies of target find_tiltpairs
+[ 81%] Building CXX object src/apps/CMakeFiles/find_tiltpairs.dir/find_tiltpairs.cpp.o
+[ 81%] Linking CXX executable ../../bin/relion_find_tiltpairs
+[ 81%] Built target find_tiltpairs
+Scanning dependencies of target postprocess
+[ 81%] Building CXX object src/apps/CMakeFiles/postprocess.dir/postprocess.cpp.o
+[ 82%] Linking CXX executable ../../bin/relion_postprocess
+[ 82%] Built target postprocess
+Scanning dependencies of target convert_star
+[ 82%] Building CXX object src/apps/CMakeFiles/convert_star.dir/convert_star.cpp.o
+[ 83%] Linking CXX executable ../../bin/relion_convert_star
+[ 83%] Built target convert_star
+Scanning dependencies of target import
+[ 84%] Building CXX object src/apps/CMakeFiles/import.dir/import.cpp.o
+[ 84%] Linking CXX executable ../../bin/relion_import
+[ 84%] Built target import
+Scanning dependencies of target preprocess
+[ 85%] Building CXX object src/apps/CMakeFiles/preprocess.dir/preprocess.cpp.o
+[ 85%] Linking CXX executable ../../bin/relion_preprocess
+[ 85%] Built target preprocess
+Scanning dependencies of target reconstruct
+[ 85%] Building CXX object src/apps/CMakeFiles/reconstruct.dir/reconstruct.cpp.o
+[ 85%] Linking CXX executable ../../bin/relion_reconstruct
+[ 85%] Built target reconstruct
+Scanning dependencies of target particle_reposition
+[ 86%] Building CXX object src/apps/CMakeFiles/particle_reposition.dir/particle_reposition.cpp.o
+[ 86%] Linking CXX executable ../../bin/relion_particle_reposition
+[ 86%] Built target particle_reposition
+Scanning dependencies of target scheduler
+[ 86%] Building CXX object src/apps/CMakeFiles/scheduler.dir/scheduler.cpp.o
+[ 86%] Linking CXX executable ../../bin/relion_scheduler
+[ 86%] Built target scheduler
+Scanning dependencies of target project
+[ 86%] Building CXX object src/apps/CMakeFiles/project.dir/project.cpp.o
+[ 87%] Linking CXX executable ../../bin/relion_project
+[ 87%] Built target project
+Scanning dependencies of target prepare_subtomo
+[ 87%] Building CXX object src/apps/CMakeFiles/prepare_subtomo.dir/prepare_subtomo.cpp.o
+[ 87%] Linking CXX executable ../../bin/relion_prepare_subtomo
+[ 87%] Built target prepare_subtomo
+Scanning dependencies of target run_motioncorr
+[ 87%] Building CXX object src/apps/CMakeFiles/run_motioncorr.dir/run_motioncorr.cpp.o
+[ 88%] Linking CXX executable ../../bin/relion_run_motioncorr
+[ 88%] Built target run_motioncorr
+Scanning dependencies of target demodulate
+[ 89%] Building CXX object src/apps/CMakeFiles/demodulate.dir/demodulate.cpp.o
+[ 89%] Linking CXX executable ../../bin/relion_demodulate
+[ 89%] Built target demodulate
+Scanning dependencies of target flex_analyse_mpi
+[ 90%] Building CXX object src/apps/CMakeFiles/flex_analyse_mpi.dir/flex_analyse_mpi.cpp.o
+[ 90%] Linking CXX executable ../../bin/relion_flex_analyse_mpi
+[ 90%] Built target flex_analyse_mpi
+Scanning dependencies of target particle_select
+[ 90%] Building CXX object src/apps/CMakeFiles/particle_select.dir/particle_select.cpp.o
+[ 91%] Linking CXX executable ../../bin/relion_particle_select
+[ 91%] Built target particle_select
+Scanning dependencies of target particle_subtract_mpi
+[ 91%] Building CXX object src/apps/CMakeFiles/particle_subtract_mpi.dir/particle_subtract_mpi.cpp.o
+[ 91%] Linking CXX executable ../../bin/relion_particle_subtract_mpi
+[ 91%] Built target particle_subtract_mpi
+Scanning dependencies of target merge_particles
+[ 92%] Building CXX object src/apps/CMakeFiles/merge_particles.dir/merge_particles.cpp.o
+[ 92%] Linking CXX executable ../../bin/relion_merge_particles
+[ 92%] Built target merge_particles
+Scanning dependencies of target refine_mpi
+[ 92%] Building CXX object src/apps/CMakeFiles/refine_mpi.dir/refine_mpi.cpp.o
+[ 93%] Linking CXX executable ../../bin/relion_refine_mpi
+[ 93%] Built target refine_mpi
+Scanning dependencies of target align_symmetry
+[ 93%] Building CXX object src/apps/CMakeFiles/align_symmetry.dir/align_symmetry.cpp.o
+[ 93%] Linking CXX executable ../../bin/relion_align_symmetry
+[ 93%] Built target align_symmetry
+Scanning dependencies of target reconstruct_mpi
+[ 94%] Building CXX object src/apps/CMakeFiles/reconstruct_mpi.dir/reconstruct_mpi.cpp.o
+[ 94%] Linking CXX executable ../../bin/relion_reconstruct_mpi
+[ 94%] Built target reconstruct_mpi
+Scanning dependencies of target autopick_mpi
+[ 94%] Building CXX object src/apps/CMakeFiles/autopick_mpi.dir/autopick_mpi.cpp.o
+[ 95%] Linking CXX executable ../../bin/relion_autopick_mpi
+[ 95%] Built target autopick_mpi
+Scanning dependencies of target refine
+[ 96%] Building CXX object src/apps/CMakeFiles/refine.dir/refine.cpp.o
+[ 96%] Linking CXX executable ../../bin/relion_refine
+[ 96%] Built target refine
+Scanning dependencies of target convert_to_tiff_mpi
+[ 97%] Building CXX object src/apps/CMakeFiles/convert_to_tiff_mpi.dir/convert_to_tiff_mpi.cpp.o
+[ 97%] Linking CXX executable ../../bin/relion_convert_to_tiff_mpi
+[ 97%] Built target convert_to_tiff_mpi
+Scanning dependencies of target star_handler
+[ 98%] Building CXX object src/apps/CMakeFiles/star_handler.dir/star_handler.cpp.o
+[ 98%] Linking CXX executable ../../bin/relion_star_handler
+[ 98%] Built target star_handler
+Scanning dependencies of target stack_create
+[ 99%] Building CXX object src/apps/CMakeFiles/stack_create.dir/stack_create.cpp.o
+[ 99%] Linking CXX executable ../../bin/relion_stack_create
+[ 99%] Built target stack_create
+Scanning dependencies of target mrc2vtk
+[ 99%] Building CXX object src/apps/CMakeFiles/mrc2vtk.dir/mrc2vtk.cpp.o
+[100%] Linking CXX executable ../../bin/relion_mrc2vtk
+[100%] Built target mrc2vtk

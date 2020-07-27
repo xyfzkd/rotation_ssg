@@ -1,0 +1,87 @@
+-- The C compiler identification is GNU 5.4.0
+-- The CXX compiler identification is GNU 5.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: /usr/bin/c++
+-- Check for working CXX compiler: /usr/bin/c++ -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- BUILD TYPE set to the default type:  'Release'
+-- Setting fallback CUDA_ARCH=35
+-- ALLOW_CTF_IN_SAGD enabled - This build of RELION allows modulation of particle images by a contrast transfer function inside stochastic average gradient descent, as specified in Claim 1 of patent US10,282,513B2
+-- CUDA enabled - Building CUDA-accelerated version of RELION
+-- Setting cpu precision to double
+-- Setting accelerated code precision to single
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - not found
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - found
+-- Found Threads: TRUE  
+-- Found CUDA: /usr/local/cuda-10.1 (found version "10.1") 
+-- Using cuda wrapper to compile....
+-- Cuda version is >= 7.5 and single-precision build, enable double usage warning.
+-- Omitting GUI targets as per your request
+-- Found MPI_C: /usr/lib/openmpi/lib/libmpi.so  
+-- Found MPI_CXX: /usr/lib/openmpi/lib/libmpi_cxx.so;/usr/lib/openmpi/lib/libmpi.so  
+-- MPI_INCLUDE_PATH : /usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent;/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include;/usr/lib/openmpi/include;/usr/lib/openmpi/include/openmpi
+-- MPI_LIBRARIES : /usr/lib/openmpi/lib/libmpi_cxx.so;/usr/lib/openmpi/lib/libmpi.so
+-- MPI_CXX_INCLUDE_PATH : /usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent;/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include;/usr/lib/openmpi/include;/usr/lib/openmpi/include/openmpi
+-- MPI_CXX_LIBRARIES : /usr/lib/openmpi/lib/libmpi_cxx.so;/usr/lib/openmpi/lib/libmpi.so
+-- CMAKE_C_COMPILER : /usr/bin/cc
+-- CMAKE_CXX_COMPILER : /usr/bin/c++
+-- MPI_C_COMPILER : /usr/bin/mpicc
+-- MPI_CXX_COMPILER : /usr/bin/mpicxx
+-- CMAKE_CXX_COMPILER_ID : GNU
+-- CMAKE_C_COMPILER : /usr/bin/mpicc
+-- CMAKE_CXX_COMPILER : /usr/bin/mpicxx
+-- MPI_C_COMPILER : /usr/bin/mpicc
+-- MPI_CXX_COMPILER : /usr/bin/mpicxx
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so
+-- Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so - found
+-- Looking for gethostbyname
+-- Looking for gethostbyname - found
+-- Looking for connect
+-- Looking for connect - found
+-- Looking for remove
+-- Looking for remove - found
+-- Looking for shmat
+-- Looking for shmat - found
+-- Looking for IceConnectionNumber in ICE
+-- Looking for IceConnectionNumber in ICE - found
+-- Found X11: /usr/lib/x86_64-linux-gnu/libX11.so
+-- Single-precision FFTW was required but NOT found
+-- Double-precision FFTW was required but NOT found
+-- Found previously built non-system single precision FFTW libraries that will be used.
+-- Found previously built non-system double precision FFTW libraries that will be used.
+-- Looking for sincos
+-- Looking for sincos - found
+-- Looking for __sincos
+-- Looking for __sincos - not found
+-- Found TIFF: /usr/lib/x86_64-linux-gnu/libtiff.so (found version "4.0.6") 
+-- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.8") 
+-- Found PNG: /usr/lib/x86_64-linux-gnu/libpng.so (found version "1.2.54") 
+BUILD_SHARED_LIBS = OFF
+-- Building static libs (larger build size and binaries)
+Running apps/CMakeLists.txt...
+-- CMAKE_BINARY_DIR:/data/xieyufeng/relion/build
+-- Git commit ID: 51a98f10a0f4cd870f86d9f65ae94d66370e946b
+-- Try OpenMP C flag = [-fopenmp]
+-- Performing Test OpenMP_FLAG_DETECTED
+-- Performing Test OpenMP_FLAG_DETECTED - Success
+-- Try OpenMP CXX flag = [-fopenmp]
+-- Performing Test OpenMP_FLAG_DETECTED
+-- Performing Test OpenMP_FLAG_DETECTED - Success
+-- Found OpenMP: -fopenmp  
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /data/xieyufeng/relion/build
