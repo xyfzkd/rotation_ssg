@@ -1842,9 +1842,9 @@ void MotioncorrRunner::realSpaceInterpolation_ThirdOrderPolynomial(Image <float>
 }
 
 bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes, const int pnx, const int pny, const RFLOAT scaled_B, std::vector<RFLOAT> &xshifts, std::vector<RFLOAT> &yshifts, std::ostream &logfile) {
-	std::vector<Image<float> > Iccs(n_threads);
+	Image<float> Iccs;
 	MultidimArray<fComplex> Fref;
-	std::vector<MultidimArray<fComplex> > Fccs(n_threads);
+	MultidimArray<fComplex> Fccs;
 	MultidimArray<float> weight;
 	std::vector<RFLOAT> cur_xshifts, cur_yshifts;
 	bool converged = false;
@@ -1885,10 +1885,10 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 	const int nfy_half = nfy / 2;
 
 	Fref.reshape(ccf_nfy, ccf_nfx);
-	for (int i = 0; i < n_threads; i++) {
-		Iccs[i]().reshape(ccf_ny, ccf_nx);
-		Fccs[i].reshape(Fref);
-	}
+
+    Iccs().reshape(ccf_ny, ccf_nx);
+    Fccs.reshape(Fref);
+
 
 #ifdef DEBUG
 	std::cout << "Patch Size X = " << pnx << " Y  = " << pny << std::endl;
@@ -1929,24 +1929,21 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 		}
 		RCTOC(TIMING_MAKE_REF);
 
-        printf("\n");
-		#pragma omp parallel for num_threads(n_threads)
 		for (int iframe = 0; iframe < n_frames; iframe++) {
 			const int tid = omp_get_thread_num();
 
-            printf("%d\n",tid);
 			RCTIC(TIMING_CCF_CALC);
 			for (int y = 0; y < ccf_nfy; y++) {
 				const int ly = (y > ccf_nfy_half) ? (y - ccf_nfy + nfy) : y;
 				for (int x = 0; x < ccf_nfx; x++) {
-					DIRECT_A2D_ELEM(Fccs[tid], y, x) = (DIRECT_A2D_ELEM(Fref, y, x) - DIRECT_A2D_ELEM(Fframes[iframe], ly, x)) *
+					DIRECT_A2D_ELEM(Fccs, y, x) = (DIRECT_A2D_ELEM(Fref, y, x) - DIRECT_A2D_ELEM(Fframes[iframe], ly, x)) *
 					                                    DIRECT_A2D_ELEM(Fframes[iframe], ly, x).conj() * DIRECT_A2D_ELEM(weight, y, x);
 				}
 			}
 			RCTOC(TIMING_CCF_CALC);
 
 			RCTIC(TIMING_CCF_IFFT);
-			NewFFT::inverseFourierTransform(Fccs[tid], Iccs[tid]());
+			NewFFT::inverseFourierTransform(Fccs, Iccs());
 			RCTOC(TIMING_CCF_IFFT);
 
 			RCTIC(TIMING_CCF_FIND_MAX);
@@ -1957,7 +1954,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 
 				for (int x = -search_range; x <= search_range; x++) {
 					const int ix = (x < 0) ? ccf_nx + x : x;
-					RFLOAT val = DIRECT_A2D_ELEM(Iccs[tid](), iy, ix);
+					RFLOAT val = DIRECT_A2D_ELEM(Iccs(), iy, ix);
 //					std::cout << "(x, y) = " << x << ", " << y << ", (ix, iy) = " << ix << " , " << iy << " val = " << val << std::endl;
 					if (val > maxval) {
 						posx = x; posy = y;
@@ -1976,16 +1973,16 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 
 			// Quadratic interpolation by Jasenko
 			RFLOAT vp, vn;
-			vp = DIRECT_A2D_ELEM(Iccs[tid](), ipy, ipx_p);
-			vn = DIRECT_A2D_ELEM(Iccs[tid](), ipy, ipx_n);
+			vp = DIRECT_A2D_ELEM(Iccs(), ipy, ipx_p);
+			vn = DIRECT_A2D_ELEM(Iccs(), ipy, ipx_n);
  			if (std::abs(vp + vn - 2.0 * maxval) > EPS) {
 				cur_xshifts[iframe] = posx - 0.5 * (vp - vn) / (vp + vn - 2.0 * maxval);
 			} else {
 				cur_xshifts[iframe] = posx;
 			}
 
-			vp = DIRECT_A2D_ELEM(Iccs[tid](), ipy_p, ipx);
-			vn = DIRECT_A2D_ELEM(Iccs[tid](), ipy_n, ipx);
+			vp = DIRECT_A2D_ELEM(Iccs(), ipy_p, ipx);
+			vn = DIRECT_A2D_ELEM(Iccs(), ipy_n, ipx);
  			if (std::abs(vp + vn - 2.0 * maxval) > EPS) {
 				cur_yshifts[iframe] = posy - 0.5 * (vp - vn) / (vp + vn - 2.0 * maxval);
 			} else {
