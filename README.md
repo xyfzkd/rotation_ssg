@@ -188,3 +188,59 @@ src/acc/acc_helper_functions_impl.h:616:		AccBackprojector &BP,
    ${CUDA_NVCC_INCLUDE_ARGS}
    
    /usr/local/cuda-10.1/bin/nvcc 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+```
+RCTIC(TIMING_PATCH_FFT);
+NewFFT::FourierTransform(Ipatches[tid], Fpatches[igroup]);
+RCTOC(TIMING_PATCH_FFT);
+
+RCTIC(TIMING_CCF_IFFT);
+NewFFT::inverseFourierTransform(Fccs[tid], Iccs[tid]());
+RCTOC(TIMING_CCF_IFFT);
+   
+TIMING_PREP_WEIGHT
+TIMING_MAKE_REF
+TIMING_CCF_CALC
+TIMING_CCF_IFFT
+TIMING_CCF_FIND_MAX
+TIMING_FOURIER_SHIFT
+   
+read gain                          : 1.449 sec (60406 microsec/operation)
+read movie                         : 7.676 sec (319840 microsec/operation)
+apply gain                         : 1.566 sec (65284 microsec/operation)
+initial sum                        : 4.695 sec (195663 microsec/operation)
+detect hot pixels                  : 1.15 sec (47953 microsec/operation)
+fix defects                        : 5.509 sec (229573 microsec/operation)
+global FFT                         : 35.273 sec (1469723 microsec/operation)
+power spectrum                     : 66.63 sec (2776284 microsec/operation)
+power - sum                        : 14.228 sec (592853 microsec/operation)
+power - square                     : 44.964 sec (1873517 microsec/operation)
+power - crop                       : 0.282 sec (11773 microsec/operation)
+power - resize                     : 7.005 sec (291894 microsec/operation)
+global alignment                   : 10.926 sec (455275 microsec/operation)
+global iFFT                        : 37.949 sec (1581241 microsec/operation)
+prepare patch                      : 39.466 sec (65777 microsec/operation)
+prep patch - clip (in thread)      : 7.905 sec (693 microsec/operation)
+prep patch - FFT (in thread)       : 621.909 sec (43257 microsec/operation)
+patch alignment                    : 35.366 sec (58943 microsec/operation)
+align - prep weight                : 2.872 sec (4602 microsec/operation)
+align - make reference             : 6.722 sec (5264 microsec/operation)
+align - calc CCF (in thread)       : -48.871 sec (-2431 microsec/operation)
+align - iFFT CCF (in thread)       : 243.893 sec (8263 microsec/operation)
+align - argmax CCF (in thread)     : 0.109 sec (3 microsec/operation)
+align - shift in Fourier space     : 17.424 sec (13645 microsec/operation)
+fit polynomial                     : 0.086 sec (3614 microsec/operation)
+dose weighting                     : 49.023 sec (2042654 microsec/operation)
+dw - calc weight                   : 12.305 sec (512737 microsec/operation)
+dw - iFFT                          : 36.717 sec (1529914 microsec/operation)
+real space interpolation           : 18.609 sec (775412 microsec/operation)
+binning                            : 0 sec (0 microsec/operation)
