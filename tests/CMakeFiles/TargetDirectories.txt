@@ -1,0 +1,3 @@
+/home/xyf/relion/tests/CMakeFiles/rebuild_cache.dir
+/home/xyf/relion/tests/CMakeFiles/tests.dir
+/home/xyf/relion/tests/CMakeFiles/edit_cache.dir

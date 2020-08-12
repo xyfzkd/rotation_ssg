@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++11 -fopenmp    -rdynamic CMakeFiles/tests.dir/tests.o  -o tests -lrelion_lib 
