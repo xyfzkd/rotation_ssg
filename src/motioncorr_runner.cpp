@@ -1929,11 +1929,12 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 		}
 		RCTOC(TIMING_MAKE_REF);
 
+        printf("\n");
 		#pragma omp parallel for num_threads(n_threads)
 		for (int iframe = 0; iframe < n_frames; iframe++) {
 			const int tid = omp_get_thread_num();
 
-
+            printf("%d\n",tid);
 			RCTIC(TIMING_CCF_CALC);
 			for (int y = 0; y < ccf_nfy; y++) {
 				const int ly = (y > ccf_nfy_half) ? (y - ccf_nfy + nfy) : y;
