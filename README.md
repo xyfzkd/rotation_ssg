@@ -262,3 +262,12 @@ align - calc CCF (in thread)       : 4.373 sec (142 microsec/operation)
 align - iFFT CCF (in thread)       : 33.004 sec (1076 microsec/operation)
 align - argmax CCF (in thread)     : 0.069 sec (2 microsec/operation)
 align - shift in Fourier space     : 116.809 sec (91472 microsec/operation)
+
+threads_for_shift_fourier
+align - prep weight                : 0.947 sec (1518 microsec/operation)
+align - make reference             : 6.315 sec (4945 microsec/operation)
+align - calc CCF (in thread)       : 4.413 sec (144 microsec/operation)
+align - iFFT CCF (in thread)       : 33.749 sec (1101 microsec/operation)
+align - argmax CCF (in thread)     : 0.073 sec (2 microsec/operation)
+align - shift in Fourier space     : 17.861 sec (13987 microsec/operation)
+
