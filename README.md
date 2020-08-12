@@ -1,146 +1,254 @@
-RELION 3.1 (+ EER support)
-===========================
+# rotation in Shilab
+------
 
-RELION (for REgularised LIkelihood OptimisatioN) is a stand-alone computer
-program for Maximum A Posteriori refinement of (multiple) 3D reconstructions
-or 2D class averages in cryo-electron microscopy. It is developed in the
-research group of Sjors Scheres at the MRC Laboratory of Molecular Biology.
+> **`relion ver3.1 src/acc/cuda` 优化`backproject`的kernel**
+> 
+> 根据`relion31_tutorial.pdf`，下载数据集`relion30_tutorial/Movies/*.tiff`，范例在`PrecalculatedResults `，工作目录为`relion30_tutorial`
 
-The underlying theory of MAP refinement is given in a [scientific publication](https://www.ncbi.nlm.nih.gov/pubmed/22100448).
-If RELION is useful in your work, please cite this paper.
+* 需要快速熟悉relion的流程，例如要每步操作的输出文件类型，为优化做铺垫...
+* 优化
+* ...
 
-The more comprehensive documentation of RELION is stored on the [Wiki](http://www2.mrc-lmb.cam.ac.uk/relion)
+## preprocessing
 
-For EER data processing, please read instructions in [our wiki](https://www3.mrc-lmb.cam.ac.uk/relion/index.php/Image_compression#Falcon4_EER) carefully. 
+>根据`relion31_tutorial.pdf`，文档提供GUI下的操作，猜测描述猜测`args`
 
-## Installation
+```bash
+relion_import \
+--i "Movies/*.tiff" \
+--odir Import/job001/ \
+--ofile movies.star \
+--do_movies true \
+--optics_group_name opticsGroup1 \
+--optics_group_mtf mtf_k2_200kV.star \
+--angpix 0.885 \
+--kV 200 \
+--Cs 1.4 \
+--Q0 0.1 
+```
+1. 自建`odir`
+2. `ifile`记得加双引号
+3. 范例可见于`PrecalculatedResults/Import/job001/note.txt`
+4. 输出`less Import/job001/movies.star`，
 
-More extensive options and configurations are available [here](http://www2.mrc-lmb.cam.ac.uk/relion/index.php/Download_%26_install),
-but the outlines to clone and install relion for typical use are made easy through [cmake](https://en.wikipedia.org/wiki/CMake).
-
-On Debian or Ubuntu machines, installing cmake, the compiler, and additional dependencies (mpi, fftw) is as easy as:
+## motioncorr
+> 根据上个步骤的总结3，直接运行
 
 ```
-sudo apt install cmake git build-essential mpi-default-bin mpi-default-dev libfftw3-dev libtiff-dev
+`which relion_run_motioncorr` \
+--i Import/job001/movies.star \
+--o MotionCorr/job002/ \
+--first_frame_sum 1 \
+--last_frame_sum 0 \
+--use_own  \
+--j 24 \
+--bin_factor 1 \
+--bfactor 150 \
+--dose_per_frame 1.277 \
+--preexposure 0 \
+--patch_x 5 \
+--patch_y 5 \
+--gainref Movies/gain.mrc \
+--gain_rot 0 \
+--gain_flip 0 \
+--dose_weighting  \
+--grouping_for_ps 3  \
+--pipeline_control MotionCorr/job002/
+```
+1. 有计时，`0.60/4.80 min .......~~(,_,">                                                 [oo]`
+
+## ctf estimation
+>根据`bp/PrecalculatedResults/CtfFind/job003/note.txt`，
+
+1. 要下载[`ctffind`](https://grigoriefflab.umassmed.edu/ctf_estimation_ctffind_ctftilt)，同时更改`--ctffind_exe`
+2. 要下载`csh`，推荐`conda`安装`tcsh`并`alias`
+
+## Manual particle picking
+>根据`bp/PrecalculatedResults/ManualPick/job004/note.txt`，略去手动挑选操作，执行`echo CtfFind/job003/micrographs_ctf.star > ManualPick/job004/coords_suffix_manualpick.star`
+
+1. 教程提到基于`LoG`自动挑选策略，是用到`scripts/relion_it.py`，然而教程不采纳完全自动的策略，而是采用`ver3.1`下不存在的`manual picking`，这是`ver3.0`以来的教程和实际操作的矛盾。
+2. 在以上情况下，基于对工作目录已有一个大致的了解，直接进入优化这步...
+
+## 优化
+阅读教程，知**backprojection**可能包含在`relion_refine_mpi`，`relion_refine_mpi `与目标息息相关
+
+结合源代码`src/acc/cuda`下的`backprojector.cu*`文件，溯源头文件，发现`AccBackprojector`类的定义和类方法的定义，此外发现或与加速相关的语句
+
+```bash
+grep -rn "AccBackprojector" *
+src/acc/cuda/cuda_ml_optimiser.h:26:	std::vector< AccBackprojector > backprojectors;
+src/acc/cpu/cpu_ml_optimiser.h:27:	std::vector< AccBackprojector > backprojectors;
+src/acc/acc_backprojector_impl.h:8:size_t AccBackprojector::setMdlDim(
+src/acc/acc_backprojector_impl.h:54:void AccBackprojector::initMdl()
+src/acc/acc_backprojector_impl.h:84:void AccBackprojector::getMdlData(XFLOAT *r, XFLOAT *i, XFLOAT * w)
+src/acc/acc_backprojector_impl.h:101:void AccBackprojector::getMdlDataPtrs(XFLOAT *& r, XFLOAT *& i, XFLOAT *& w)
+src/acc/acc_backprojector_impl.h:110:void AccBackprojector::clear()
+src/acc/acc_backprojector_impl.h:140:AccBackprojector::~AccBackprojector()
+src/acc/acc_helper_functions.h:97:		AccBackprojector &BP,
+src/acc/acc_backprojector.h:15:class AccBackprojector
+src/acc/acc_backprojector.h:38:	AccBackprojector():
+src/acc/acc_backprojector.h:86:	~AccBackprojector();
+src/acc/acc_helper_functions_impl.h:616:		AccBackprojector &BP,
 ```
 
-On other systems it is typically just as easy, you simply have to modify "apt" to
-the appropriate package manager (e.g. yum).
+在`build/Makefile`找到
 
-Once git and cmake are installed, relion can be easily installed through:
-
+```vim
+ #=============================================================================
+ # Target rules for targets named run_motioncorr
+ 
+ # Build rule for target.
+ run_motioncorr: cmake_check_build_system
+     $(MAKE) -f CMakeFiles/Makefile2 run_motioncorr
+ .PHONY : run_motioncorr
+ 
+ # fast build rule for target.
+ run_motioncorr/fast:
+     $(MAKE) -f src/apps/CMakeFiles/run_motioncorr.dir/build.make src/apps/CMakeFiles/        run_motioncorr.dir/build
+ .PHONY : run_motioncorr/fast
+ 
+ #=============================================================================
+  
 ```
-git clone https://github.com/3dem/relion.git
-cd relion
-git checkout ver3.1
-mkdir build
-cd build
-cmake ..
-make
-```
-
-The binaries will be produced in the `build/bin` directory. If you want to copy binaries
-into somewhere else, run `cmake` with `-DCMAKE_INSTALL_PREFIX=/where/to/install/` and
-perform `make install` as the final step. Do not specify the build directory itself
-as `CMAKE_INSTALL_PREFIX`! This will not work.
-
-Also note that the MPI library used for compilation must be the one you intend to use RELION with.
-Compiling RELION with one version of MPI and running the resulting binary with mpirun from another
-version can cause crash. See our wiki below for details.
-
-In any case, you have to make sure your PATH environmental variable points to the directory
-containing relion binaries. Launching RELION as `/path/to/relion` is NOT a right way; this
-starts the right GUI, but the GUI might invoke other versions of RELION in the PATH.
-
-If FLTK related errors are reported, please add `-DFORCE_OWN_FLTK=ON` to
-`cmake`. For FFTW related errors, try `-DFORCE_OWN_FFTW=ON`.
-
-RELION also requires libtiff. Most Linux distributions have packages like `libtiff-dev` or `libtiff-devel`.
-Note that you need a developer package. You need version 4.0.x to read BigTIFF files. If you installed
-libtiff in a non-standard location, specify the location by
-`-DTIFF_INCLUDE_DIR=/path/to/include -DTIFF_LIBRARY=/path/to/libtiff.so.5`.
-
-See [our wiki](http://www2.mrc-lmb.cam.ac.uk/relion/index.php/Download_%26_install) for more
-options, troubleshooting and useful environmental variables (especially in HPC clusters).
-
-## Updating
-
-RELION is intermittently updated, with both minor and major features.
-To update an existing installation, simply use the following commands
-
-```
-cd relion
-git pull
-cd build
-make
-make install # Only when you have specified CMAKE_INSTALL_PREFIX in the cmake step
-```
-
-If something went wrong, remove the `build` directory and try again from `cmake`.
-
-## Options for accelerated versions
-
-Parts of the cryo-EM processing pipeline can be very computationally demanding, and in some cases special
-hardware can be used to make these faster. There are two such cases at the moment;
-
-* GPU acceleration: RELION only supports CUDA-capable GPUs of compute capabilty 3.5 or higher.
-* Vectorized CPU code path: RELION only supports GCC and ICC 2018.3 or later.
-
-Note that you cannot have both acceleration in the same binary at the moment.
-
-There are more benefits than speed; the accelearated versions also have a decreased memory footprint.
-Details about how to enable either of these options is listed below.
-
-## GPU-acceleration
-
-Tools that are GPU-accelerated:
-* relion\_refine (i.e. Class2D, Class3D, Refine3D, Multibody refinement)
-* relion\_autopick
-
-Classification without alignment is not accelerated.
-
-When CUDA SDK is available, GPU support is automatically compiled.
-
-### Use
-
-If you run relion\_refine with a the "`--gpu`" flag, you will run the accelerated CUDA version of the kernels.
-If you leave out the "`--gpu`" flag, it will run the original CPU version.
-
-## CPU-acceleration
-
-Tools that are CPU-accelerated (vectorized):
-* relion\_refine (i.e. Class2D, Class3D, Refine3D, Multibody refinement)
-
-Classification without alignment is not accelerated.
-
-To build with support for CPU-accelerated kernels in addition to the original CPU version, build by setting `ALTCPU=ON`
-
-```
-cd build
-rm -r *
-cmake -DALTCPU=ON ..
-make
-make install
+以上命令可以生成`run_motioncorr`
+  
+  ```vim
+  # Target rules for target src/apps/CMakeFiles/run_motioncorr.dir
+ 
+ # All Build rule for target.
+ src/apps/CMakeFiles/run_motioncorr.dir/all: src/apps/CMakeFiles/relion_lib.dir/all
+     $(MAKE) -f src/apps/CMakeFiles/run_motioncorr.dir/build.make src/apps/CMakeFiles/run_motioncorr.dir/depend
+     $(MAKE) -f src/apps/CMakeFiles/run_motioncorr.dir/build.make src/apps/CMakeFiles/run_motioncorr.dir/build
+     @$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/data/xieyufeng/relion/build/        CMakeFiles --progress-num=95 "Built target run_motioncorr"
+ .PHONY : src/apps/CMakeFiles/run_motioncorr.dir/all
+ 
+ # Include target in all.
+ all: src/apps/CMakeFiles/run_motioncorr.dir/all
+ 
+ .PHONY : all
+ 
+ # Build rule for subdir invocation for target.
+ src/apps/CMakeFiles/run_motioncorr.dir/rule: cmake_check_build_system
+     $(CMAKE_COMMAND) -E cmake_progress_start /data/xieyufeng/relion/build/CMakeFiles 59
+     $(MAKE) -f CMakeFiles/Makefile2 src/apps/CMakeFiles/run_motioncorr.dir/all
+     $(CMAKE_COMMAND) -E cmake_progress_start /data/xieyufeng/relion/build/CMakeFiles 0
+ .PHONY : src/apps/CMakeFiles/run_motioncorr.dir/rule
+ 
+ # Convenience name for target.
+ run_motioncorr: src/apps/CMakeFiles/run_motioncorr.dir/rule
+ 
+ .PHONY : run_motioncorr
+ 
+ # clean rule for target.
+ src/apps/CMakeFiles/run_motioncorr.dir/clean:
+     $(MAKE) -f src/apps/CMakeFiles/run_motioncorr.dir/build.make src/apps/CMakeFiles/run_motioncorr.dir/clean
+ .PHONY : src/apps/CMakeFiles/run_motioncorr.dir/clean
+ 
+ # clean rule for target.
+ clean: src/apps/CMakeFiles/run_motioncorr.dir/clean
+ 
+ .PHONY : clean
 ```
 
-This will require the Intel TBB (Threading Building Blocks) library. RELION will look for TBB,
-and fetch and install it when it is missing on your system. You can force this behaviour (and make sure
-you are using the latest version) by adding:
 
+ # Generate the dependency file
+ cuda_execute_process(
+   "Generating dependency file: ${NVCC_generated_dependency_file}"
+   COMMAND "${CUDA_NVCC_EXECUTABLE}"
+   -M
+   ${CUDACC_DEFINE}
+   "${source_file}"
+   -o "${NVCC_generated_dependency_file}"
+   ${CCBIN}
+   ${nvcc_flags}
+   ${nvcc_host_compiler_flags}
+   ${depends_CUDA_NVCC_FLAGS}
+   -DNVCC
+   ${CUDA_NVCC_INCLUDE_ARGS}
+   )
+   
+    -D__CUDACC__
+    /data/xieyufeng/relion/src/acc/cuda/cuda_projector.cu
+    /data/xieyufeng/relion/build/src/apps/CMakeFiles/relion_gpu_util.dir/__/    acc/cuda/relion_gpu_util_generated_cuda_projector.cu.o.NVCC-depend
+
+-m64;-DINSTALL_LIBRARY_DIR=/data/xieyufeng/software/bin/lib/;-DSOURCE_DIR=/data/xieyufeng/       relion/src/;-DACC_CUDA=2;-DACC_CPU=1;-DCUDA;-DALLOW_CTF_IN_SGD;-DHAVE_SINCOS;-DHAVE_TIFF;-DHAVE_PNG
+
+"-I/usr/local/cuda-10.1/include;-I/usr/lib/openmpi/include/openmpi/opal/mca/event/   libevent2021/libevent;-I/usr/lib/openmpi/include/openmpi/opal/mca/event/libevent2021/libevent/include;-I/usr/   lib/openmpi/include;-I/usr/lib/openmpi/include/openmpi;-I/data/xieyufeng/relion;-I/data/xieyufeng/relion/       external/fftw/include;-I/usr/local/cuda-10.1/include"
+
+   "Generating ${generated_file}"
+   COMMAND "${CUDA_NVCC_EXECUTABLE}"
+   "${source_file}"
+   ${cuda_language_flag}
+   ${format_flag} -o "${generated_file}"
+   ${CCBIN}
+   ${nvcc_flags}
+   ${nvcc_host_compiler_flags}
+   ${CUDA_NVCC_FLAGS}
+   -DNVCC
+   ${CUDA_NVCC_INCLUDE_ARGS}
+   
+   /usr/local/cuda-10.1/bin/nvcc 
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
 ```
--DFORCE_OWN_TBB=ON
-```
+RCTIC(TIMING_PATCH_FFT);
+NewFFT::FourierTransform(Ipatches[tid], Fpatches[igroup]);
+RCTOC(TIMING_PATCH_FFT);
 
-In addition, you can make use the Intel Math Kernel Library (Intel MKL).
-This is optional (but will scale better with increased threads). Add this by:
-```
--DMKLFFT=ON
-```
+RCTIC(TIMING_CCF_IFFT);
+NewFFT::inverseFourierTransform(Fccs[tid], Iccs[tid]());
+RCTOC(TIMING_CCF_IFFT);
+   
+TIMING_PREP_WEIGHT
+TIMING_MAKE_REF
+TIMING_CCF_CALC
+TIMING_CCF_IFFT
+TIMING_CCF_FIND_MAX
+TIMING_FOURIER_SHIFT
 
-### Use
+align - prep weight 2.8
+align - make reference 
+align - calc CCF (in thread)
+align - iFFT CCF (in thread)
+align - argmax CCF (in thread)
+align - shift in Fourier space
 
-If you run relion\_refine with a the "`--cpu`" flag, you will run the accelerated version.
-If you leave it the original CPU version will be run. You should use this flag if you can, unless you want to verify old runs or behaviour.
-
-For details on how to compile with Intel compilers and optimal runtime configulations,
-please look at our [wiki](https://www3.mrc-lmb.cam.ac.uk/relion/index.php/Benchmarks_%26_computer_hardware#Accelerated_RELION.2C_using_GPUs_or_CPU-vectorization).
+   
+read gain                          : 1.449 sec (60406 microsec/operation)
+read movie                         : 7.676 sec (319840 microsec/operation)
+apply gain                         : 1.566 sec (65284 microsec/operation)
+initial sum                        : 4.695 sec (195663 microsec/operation)
+detect hot pixels                  : 1.15 sec (47953 microsec/operation)
+fix defects                        : 5.509 sec (229573 microsec/operation)
+global FFT                         : 35.273 sec (1469723 microsec/operation)
+power spectrum                     : 66.63 sec (2776284 microsec/operation)
+power - sum                        : 14.228 sec (592853 microsec/operation)
+power - square                     : 44.964 sec (1873517 microsec/operation)
+power - crop                       : 0.282 sec (11773 microsec/operation)
+power - resize                     : 7.005 sec (291894 microsec/operation)
+global alignment                   : 10.926 sec (455275 microsec/operation)
+global iFFT                        : 37.949 sec (1581241 microsec/operation)
+prepare patch                      : 39.466 sec (65777 microsec/operation)
+prep patch - clip (in thread)      : 7.905 sec (693 microsec/operation)
+prep patch - FFT (in thread)       : 621.909 sec (43257 microsec/operation)
+patch alignment                    : 35.366 sec (58943 microsec/operation)
+align - prep weight                : 2.872 sec (4602 microsec/operation)
+align - make reference             : 6.722 sec (5264 microsec/operation)
+align - calc CCF (in thread)       : -48.871 sec (-2431 microsec/operation)
+align - iFFT CCF (in thread)       : 243.893 sec (8263 microsec/operation)
+align - argmax CCF (in thread)     : 0.109 sec (3 microsec/operation)
+align - shift in Fourier space     : 17.424 sec (13645 microsec/operation)
+fit polynomial                     : 0.086 sec (3614 microsec/operation)
+dose weighting                     : 49.023 sec (2042654 microsec/operation)
+dw - calc weight                   : 12.305 sec (512737 microsec/operation)
+dw - iFFT                          : 36.717 sec (1529914 microsec/operation)
+real space interpolation           : 18.609 sec (775412 microsec/operation)
+binning                            : 0 sec (0 microsec/operation)
