@@ -2014,7 +2014,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 		// Apply shifts
 		// Since the image is not necessarily square, we cannot use the method in fftw.cpp
 		RCTIC(TIMING_FOURIER_SHIFT);
-
+		#pragma omp parallel for num_threads(n_threads)
 		for (int iframe = 1; iframe < n_frames; iframe++) {
 			shiftNonSquareImageInFourierTransform(Fframes[iframe], -cur_xshifts[iframe] / pnx, -cur_yshifts[iframe] / pny);
 		}

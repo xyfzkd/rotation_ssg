@@ -252,3 +252,13 @@ dw - calc weight                   : 12.305 sec (512737 microsec/operation)
 dw - iFFT                          : 36.717 sec (1529914 microsec/operation)
 real space interpolation           : 18.609 sec (775412 microsec/operation)
 binning                            : 0 sec (0 microsec/operation)
+
+
+
+de_threads
+align - prep weight                : 0.947 sec (1517 microsec/operation)
+align - make reference             : 5.615 sec (4397 microsec/operation)
+align - calc CCF (in thread)       : 4.373 sec (142 microsec/operation)
+align - iFFT CCF (in thread)       : 33.004 sec (1076 microsec/operation)
+align - argmax CCF (in thread)     : 0.069 sec (2 microsec/operation)
+align - shift in Fourier space     : 116.809 sec (91472 microsec/operation)
