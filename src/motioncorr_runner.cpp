@@ -1942,7 +1942,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 			RCTOC(TIMING_CCF_CALC);
 
 			RCTIC(TIMING_CCF_IFFT);
-            NewFFT::inverseFourierTransform(Fccs, Iccs());
+            CuFFT::inverseFourierTransform(Fccs, Iccs());
 			RCTOC(TIMING_CCF_IFFT);
 
 			RCTIC(TIMING_CCF_FIND_MAX);
