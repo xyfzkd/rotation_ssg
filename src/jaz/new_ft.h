@@ -21,12 +21,11 @@
 #ifndef NEW_FFTW_H
 #define NEW_FFTW_H
 
-//#include <fftw3.h>
+#include <fftw3.h>
 #include <pthread.h>
 #include <memory>
 #include "src/multidim_array.h"
 #include "src/jaz/t_complex.h"
-#include <cufftw.h>
 
 /*
     Usage patterns:
@@ -365,25 +364,25 @@ class NewFFT
 				float *realPtr, *complexPtr;
                 std::shared_ptr<Plan> plan;
         };
-
-    class cuFloatPlan
-    {
-    public:
-
-        cuFloatPlan(int w, int h = 1, int d = 1);
-
-        cuFloatPlan(MultidimArray<float>& real,
-                  MultidimArray<fComplex>& complex);
-
-        cufftHandle getForward() const
-        {
-            return plan.get()->forward;
-        }
-
-        cufftHandle getBackward() const
-        {
-            return plan.get()->backward;
-        }
+/* 尝试修改newfft类增加cuFloatPlan，结果头文件似乎有矛盾 */
+//    class cuFloatPlan
+//    {
+//    public:
+//
+//        cuFloatPlan(int w, int h = 1, int d = 1);
+//
+//        cuFloatPlan(MultidimArray<float>& real,
+//                  MultidimArray<fComplex>& complex);
+//
+//        cufftHandle getForward() const
+//        {
+//            return plan.get()->forward;
+//        }
+//
+//        cufftHandle getBackward() const
+//        {
+//            return plan.get()->backward;
+//        }
 
 //        bool isCompatible(const MultidimArray<float>& real) const
 //        {
@@ -402,30 +401,30 @@ class NewFFT
 //            return reusable;
 //        }
 
-    private:
-
-        class Plan
-        {
-        public:
-
-            Plan(cufftHandle forward, cufftHandle backward)
-                    :   forward(forward), backward(backward)
-            {}
-
-            ~Plan()
-            {
-                cufftDestroy(forward);
-                cufftDestroy(backward);
-            }
-
-            cufftHandle forward, backward;
-        };
-
-        bool reusable;
-        int w, h, d;
-        float *realPtr, *complexPtr;
-        std::shared_ptr<Plan> plan;
-    };
+//    private:
+//
+//        class Plan
+//        {
+//        public:
+//
+//            Plan(cufftHandle forward, cufftHandle backward)
+//                    :   forward(forward), backward(backward)
+//            {}
+//
+//            ~Plan()
+//            {
+//                cufftDestroy(forward);
+//                cufftDestroy(backward);
+//            }
+//
+//            cufftHandle forward, backward;
+//        };
+//
+//        bool reusable;
+//        int w, h, d;
+//        float *realPtr, *complexPtr;
+//        std::shared_ptr<Plan> plan;
+//    };
 
         static pthread_mutex_t fftw_plan_mutex_new;
 };
