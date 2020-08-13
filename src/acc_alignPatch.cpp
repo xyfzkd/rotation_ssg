@@ -1,4 +1,5 @@
 #include <cufftw.h>
+#include <cufft.h>
 #include "cuda_runtime.h"
 #include "acc_alignPatch.h"
 
