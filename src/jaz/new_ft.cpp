@@ -345,26 +345,6 @@ void NewFFT::_inverseFourierTransform(
 }
 
 
-void NewFFT::_inverseFourierTransform(
-        MultidimArray<fComplex>& src,
-        MultidimArray<float>& dest,
-        const NewFFT::FloatPlan& plan,
-        Normalization normalization)
-{
-    fftwf_complex* in = (fftwf_complex*) MULTIDIM_ARRAY(src);
-
-    fftwf_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));
-
-    if (normalization == Both)
-    {
-        const float scale = sqrt(MULTIDIM_SIZE(dest));
-
-        for (long int i = 0; i < NZYXSIZE(dest); i++)
-        {
-            dest.data[i] /= scale;
-        }
-    }
-}
 
 NewFFT::DoublePlan::DoublePlan(int w, int h, int d, unsigned int flags)
 :   
