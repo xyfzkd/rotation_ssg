@@ -110,9 +110,9 @@ src/acc/acc_helper_functions_impl.h:616:		AccBackprojector &BP,
  #=============================================================================
   
 ```
-以上命令可以生成`run_motioncorr`
+以上命令可以生成`run_motioncorr`, 但无脑`make`也成，以下是展开
   
-  ```vim
+```vim
   # Target rules for target src/apps/CMakeFiles/run_motioncorr.dir
  
  # All Build rule for target.
@@ -150,7 +150,9 @@ src/acc/acc_helper_functions_impl.h:616:		AccBackprojector &BP,
  .PHONY : clean
 ```
 
+以下大概是cuda文件的编译，复杂，暂时不想看
 
+```
  # Generate the dependency file
  cuda_execute_process(
    "Generating dependency file: ${NVCC_generated_dependency_file}"
@@ -189,24 +191,21 @@ src/acc/acc_helper_functions_impl.h:616:		AccBackprojector &BP,
    
    /usr/local/cuda-10.1/bin/nvcc 
    
-   
-   
-   
-   
-   
-   
-   
-   
-   
 ```
-RCTIC(TIMING_PATCH_FFT);
-NewFFT::FourierTransform(Ipatches[tid], Fpatches[igroup]);
-RCTOC(TIMING_PATCH_FFT);
-
-RCTIC(TIMING_CCF_IFFT);
-NewFFT::inverseFourierTransform(Fccs[tid], Iccs[tid]());
-RCTOC(TIMING_CCF_IFFT);
    
+   
+   
+   
+   
+   
+# profiling
+
+目标是`src/run_motioncorr.cpp`的`alignPatch`函数`GPU`化，实际上是为了加速，那么做一个时间的profiling
+
+## alignPatch
+alignPatch的六个主要部分如下
+
+```
 TIMING_PREP_WEIGHT
 TIMING_MAKE_REF
 TIMING_CCF_CALC
@@ -220,8 +219,10 @@ align - calc CCF (in thread)
 align - iFFT CCF (in thread)
 align - argmax CCF (in thread)
 align - shift in Fourier space
+```
+使用tutorialdata自带的`job002`下的脚本，得到如下
 
-   
+```
 read gain                          : 1.449 sec (60406 microsec/operation)
 read movie                         : 7.676 sec (319840 microsec/operation)
 apply gain                         : 1.566 sec (65284 microsec/operation)
@@ -252,9 +253,32 @@ dw - calc weight                   : 12.305 sec (512737 microsec/operation)
 dw - iFFT                          : 36.717 sec (1529914 microsec/operation)
 real space interpolation           : 18.609 sec (775412 microsec/operation)
 binning                            : 0 sec (0 microsec/operation)
+```
+最耗时有两个部分，如下，其中一个在`alignPatch`函数中，
+   
+```
+RCTIC(TIMING_PATCH_FFT);
+NewFFT::FourierTransform(Ipatches[tid], Fpatches[igroup]);
+RCTOC(TIMING_PATCH_FFT);
 
+RCTIC(TIMING_CCF_IFFT);
+NewFFT::inverseFourierTransform(Fccs[tid], Iccs[tid]());
+RCTOC(TIMING_CCF_IFFT);
+```
 
+* emmmm，可能代码有误，有部分竟然是负数
+*
+   
+## exp
+以下要改写函数，发现函数有线程加速部分，基本上是看不大懂，可能知道的知识点也只有SIMD的avvx指令，也只是概念上理解，但根据relion文档描述，感觉可以理解为一个线程负责一个或若干个loop（是照片的loop，照片可以并行地一张张处理），设置`--j 12`，可能指代一个线程负责两张照片，其中一共有24张照片
 
+除此之外，可能还有`mpirun`模式，并且测试发现能加速到两三分钟，咱先不管
+### 去thread
+观察代码，发现六模块每个都有线程加速的pattern，删掉，并修改数据结构取消`tid`的作用，猜测引入vector是为了loop中每个element不相互影响，那不多线程的话，tid就没有作用
+
+这样得到一个去threads的版本
+
+```
 de_threads
 align - prep weight                : 0.947 sec (1517 microsec/operation)
 align - make reference             : 5.615 sec (4397 microsec/operation)
@@ -262,7 +286,10 @@ align - calc CCF (in thread)       : 4.373 sec (142 microsec/operation)
 align - iFFT CCF (in thread)       : 33.004 sec (1076 microsec/operation)
 align - argmax CCF (in thread)     : 0.069 sec (2 microsec/operation)
 align - shift in Fourier space     : 116.809 sec (91472 microsec/operation)
+```
 
+### 给最后一个最耗时的模块加thread
+```
 threads_for_shift_fourier
 align - prep weight                : 0.947 sec (1518 microsec/operation)
 align - make reference             : 6.315 sec (4945 microsec/operation)
@@ -270,4 +297,28 @@ align - calc CCF (in thread)       : 4.413 sec (144 microsec/operation)
 align - iFFT CCF (in thread)       : 33.749 sec (1101 microsec/operation)
 align - argmax CCF (in thread)     : 0.073 sec (2 microsec/operation)
 align - shift in Fourier space     : 17.861 sec (13987 microsec/operation)
+```
+### 给倒数四个的模块加thread
+又出现负数，可能和tid有关，暂时先不管了
+```
+threads_for_calc_ccf
+align - prep weight                : 0.929 sec (1489 microsec/operation)
+align - make reference             : 12.678 sec (4063 microsec/operation)
+align - calc CCF (in thread)       : -85.7 sec (-1236 microsec/operation)
+align - iFFT CCF (in thread)       : 104.649 sec (1432 microsec/operation)
+align - argmax CCF (in thread)     : 0.28 sec (3 microsec/operation)
+align - shift in Fourier space     : 35.368 sec (11336 microsec/operation)
+```
 
+
+得到结论
+# 可以给最后一个模块做gpu优化
+
+# 研究被调用函数
+根据gdb设置断点，找到被调用函数的位置，根据where给出的函数原型找源代码
+
+发现核心函数可能是`new_ft.cpp`的第333行左右的`fftwf_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));`
+
+* 它是cpu版本的傅立叶变换，找gpu版本
+* 在relion目录下搜寻cufft的运用，发现了`cuda_kernels/helper.cuh`的一些敏感函数`cuda_kernel_centerFFT_2D`等，没有详细描述不知道它是做什么的，同时这些kernel自己做些运算，感觉不大靠谱（因为已经有cufft了 不知道为啥还要自己造轮子）
+* 目前大概只懂要写device的kernel，也要写host的cpp，关于写kernel要多在网上找找，关于写cpp师兄提过app/warpper，暂时没细看，冲冲冲
