@@ -21,7 +21,7 @@
 #ifndef NEW_FFTW_H
 #define NEW_FFTW_H
 
-#include <fftw3.h>
+#include <cufftw.h>
 #include <pthread.h>
 #include <memory>
 #include "src/multidim_array.h"
