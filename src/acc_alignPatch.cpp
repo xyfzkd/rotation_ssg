@@ -1,3 +1,4 @@
+#include <cufftw.h>
 #include "acc_alignPatch.h"
 
 
@@ -13,9 +14,9 @@ void CuFFT::inverseFourierTransform(
     MultidimArray<fComplex> src2 = src;
 
     std::vector<int> N(0);
-    if (d > 1) N.push_back(d);
-    if (h > 1) N.push_back(h);
-    N.push_back(w);
+    if (dest.zdim > 1) N.push_back(d);
+    if (dest.ydim > 1) N.push_back(h);
+    N.push_back(dest.xdim);
 
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
     cufftHandle planIn;
@@ -36,7 +37,7 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
 
-    if (cufftExecC2R(p.getBackward(),(cufftComplex*) MULTIDIM_ARRAY(src2), MULTIDIM_ARRAY(dest)) != CUFFT_SUCCESS){
+    if (cufftExecC2R(planIn, (cufftComplex*) MULTIDIM_ARRAY(src2), MULTIDIM_ARRAY(dest)) != CUFFT_SUCCESS){
         fprintf(stderr, "CUFFT Error: Unable to execute plan\n");
         return;
     }
