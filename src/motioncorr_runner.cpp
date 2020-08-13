@@ -29,6 +29,7 @@
 #include "src/jaz/img_proc/image_op.h"
 #include "src/funcs.h"
 #include "src/renderEER.h"
+#include "src/acc_alignPatch.h"
 
 #define TIMING
 #ifdef TIMING
