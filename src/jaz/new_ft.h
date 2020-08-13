@@ -26,6 +26,7 @@
 #include <memory>
 #include "src/multidim_array.h"
 #include "src/jaz/t_complex.h"
+#include <cufftw.h>
 
 /*
     Usage patterns:
