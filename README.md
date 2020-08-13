@@ -267,7 +267,6 @@ RCTOC(TIMING_CCF_IFFT);
 ```
 
 * emmmm，可能代码有误，有部分竟然是负数
-*
    
 ## exp
 以下要改写函数，发现函数有线程加速部分，基本上是看不大懂，可能知道的知识点也只有SIMD的avvx指令，也只是概念上理解，但根据relion文档描述，感觉可以理解为一个线程负责一个或若干个loop（是照片的loop，照片可以并行地一张张处理），设置`--j 12`，可能指代一个线程负责两张照片，其中一共有24张照片
@@ -300,6 +299,7 @@ align - shift in Fourier space     : 17.861 sec (13987 microsec/operation)
 ```
 ### 给倒数四个的模块加thread
 又出现负数，可能和tid有关，暂时先不管了
+
 ```
 threads_for_calc_ccf
 align - prep weight                : 0.929 sec (1489 microsec/operation)
@@ -322,3 +322,47 @@ align - shift in Fourier space     : 35.368 sec (11336 microsec/operation)
 * 它是cpu版本的傅立叶变换，找gpu版本
 * 在relion目录下搜寻cufft的运用，发现了`cuda_kernels/helper.cuh`的一些敏感函数`cuda_kernel_centerFFT_2D`等，没有详细描述不知道它是做什么的，同时这些kernel自己做些运算，感觉不大靠谱（因为已经有cufft了 不知道为啥还要自己造轮子）
 * 目前大概只懂要写device的kernel，也要写host的cpp，关于写kernel要多在网上找找，关于写cpp师兄提过app/warpper，暂时没细看，冲冲冲
+
+236 FloatPlan p(dest, src2);
+
+
+NewFFT::FloatPlan::FloatPlan(
+		MultidimArray<float>& real,
+		MultidimArray<fComplex>& complex,
+		unsigned int flags)
+:
+	reusable(flags & FFTW_UNALIGNED), 
+	w(real.xdim), h(real.ydim), d(real.zdim),
+	realPtr(MULTIDIM_ARRAY(real)), 
+	complexPtr((float*)MULTIDIM_ARRAY(complex))
+{
+	std::vector<int> N(0);
+	if (d > 1) N.push_back(d);
+	if (h > 1) N.push_back(h);
+	           N.push_back(w);
+	
+	const int ndim = N.size();
+	
+	pthread_mutex_lock(&fftw_plan_mutex_new);
+	
+	fftwf_plan planForward = fftwf_plan_dft_r2c(
+			ndim, &N[0],
+			MULTIDIM_ARRAY(real),
+			(fftwf_complex*) MULTIDIM_ARRAY(complex),
+			flags);
+	
+	fftwf_plan planBackward = fftwf_plan_dft_c2r(
+			ndim, &N[0],
+			(fftwf_complex*) MULTIDIM_ARRAY(complex),
+			MULTIDIM_ARRAY(real),
+			flags);
+	
+	pthread_mutex_unlock(&fftw_plan_mutex_new);
+	
+	if (planForward == NULL || planBackward == NULL)
+	{
+		REPORT_ERROR("FFTW plans cannot be created");
+	}
+	
+	plan = std::shared_ptr<Plan>(new Plan(planForward, planBackward));
+}

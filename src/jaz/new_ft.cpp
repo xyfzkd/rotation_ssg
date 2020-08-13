@@ -345,6 +345,27 @@ void NewFFT::_inverseFourierTransform(
 }
 
 
+void NewFFT::_inverseFourierTransform(
+        MultidimArray<fComplex>& src,
+        MultidimArray<float>& dest,
+        const NewFFT::FloatPlan& plan,
+        Normalization normalization)
+{
+    fftwf_complex* in = (fftwf_complex*) MULTIDIM_ARRAY(src);
+
+    fftwf_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));
+
+    if (normalization == Both)
+    {
+        const float scale = sqrt(MULTIDIM_SIZE(dest));
+
+        for (long int i = 0; i < NZYXSIZE(dest); i++)
+        {
+            dest.data[i] /= scale;
+        }
+    }
+}
+
 NewFFT::DoublePlan::DoublePlan(int w, int h, int d, unsigned int flags)
 :   
 	reusable(true), 
@@ -506,4 +527,88 @@ NewFFT::FloatPlan::FloatPlan(
 	}
 	
 	plan = std::shared_ptr<Plan>(new Plan(planForward, planBackward));
+}
+
+
+NewFFT::cuFloatPlan::cuFloatPlan(
+        MultidimArray<float>& real,
+        MultidimArray<fComplex>& complex,
+        unsigned int flags)
+        :
+        reusable(flags & FFTW_UNALIGNED),
+        w(real.xdim), h(real.ydim), d(real.zdim),
+        realPtr(MULTIDIM_ARRAY(real)),
+        complexPtr((float*)MULTIDIM_ARRAY(complex))
+{
+    std::vector<int> N(0);
+    if (d > 1) N.push_back(d);
+    if (h > 1) N.push_back(h);
+    N.push_back(w);
+
+    const int ndim = N.size();
+
+    /*
+     * cufftPlanMany ： 还看不懂https://docs.nvidia.com/cuda/cufft/index.html的3.2.4关于cufftPlanMany的描述，主要是stride参数
+     * 理解不能，可以选择不通用的函数比如2D，因为是对alignPatch做优化所以可以选择cufftPlan2d
+     */
+//    cufftPlanMany(
+//            planForward,
+//            ndim, &N[0],
+//            MULTIDIM_ARRAY(real),
+//            (fftwf_complex*) MULTIDIM_ARRAY(complex),
+//            flags);
+
+    cufftHandle planForward, planBackward;
+
+    cufftPlan2D(&planForward,  N[0], N[1], CUFFT_R2C);
+    cufftPlan2D(&planBackward, N[0], N[1], CUFFT_C2R);
+
+    if (planForward == NULL || planBackward == NULL)
+    {
+        REPORT_ERROR("FFTW plans cannot be created");
+    }
+
+    plan = std::shared_ptr<Plan>(new Plan(planForward, planBackward));
+}
+
+
+void NewFFT::cuinverseFourierTransform(
+        MultidimArray<fComplex>& src,
+        MultidimArray<float>& dest,
+        Normalization normalization,
+        bool preserveInput)
+{
+    if (!areSizesCompatible(dest, src))
+    {
+        resizeRealToMatch(dest, src);
+    }
+
+    MultidimArray<fComplex> src2 = src;
+
+    std::vector<int> N(0);
+    if (d > 1) N.push_back(d);
+    if (h > 1) N.push_back(h);
+    N.push_back(w);
+
+    cufftComplex *data;
+    cudaMalloc((void**)&data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
+    if (cudaGetLastError() != cudaSuccess){
+        fprintf(stderr, "Cuda error: Failed to allocate\n");
+        return;
+    }
+
+    /* Create a 2D FFT plan. */
+    cuFloatPlan p(dest, src2);
+
+    /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
+     * Are cufftComplex and fftwf_complex interchangable? yes!
+     */
+
+    /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
+
+    if (cufftExecC2R(p.getBackward(),(cufftComplex*) MULTIDIM_ARRAY(src2), MULTIDIM_ARRAY(dest)) != CUFFT_SUCCESS){
+        fprintf(stderr, "CUFFT Error: Unable to execute plan\n");
+        return;
+    }
+    cudaFree(data);
 }

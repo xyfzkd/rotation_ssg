@@ -143,7 +143,15 @@ class NewFFT
                 MultidimArray<float>& dest,
                 Normalization normalization = FwdOnly,
                 bool preserveInput = true);
-	
+
+        // gpu add
+        static void cuinverseFourierTransform(
+                MultidimArray<fComplex>& src,
+                MultidimArray<float>& dest,
+                Normalization normalization = FwdOnly,
+                bool preserveInput = true);
+
+
 		
 		template<class T>
 		static bool areSizesCompatible(
@@ -357,8 +365,76 @@ class NewFFT
                 std::shared_ptr<Plan> plan;
         };
 
+    class cuFloatPlan
+    {
+    public:
+
+        cuFloatPlan(int w, int h = 1, int d = 1);
+
+        cuFloatPlan(MultidimArray<float>& real,
+                  MultidimArray<fComplex>& complex);
+
+        cufftHandle getForward() const
+        {
+            return plan.get()->forward;
+        }
+
+        cufftHandle getBackward() const
+        {
+            return plan.get()->backward;
+        }
+
+//        bool isCompatible(const MultidimArray<float>& real) const
+//        {
+//            return (real.xdim == w && real.ydim == h && real.zdim == d)
+//                   && (reusable || realPtr == MULTIDIM_ARRAY(real));
+//        }
+//
+//        bool isCompatible(const MultidimArray<fComplex>& complex) const
+//        {
+//            return (complex.xdim == w/2+1 && complex.ydim == h && complex.zdim == d)
+//                   && (reusable || complexPtr == (float*)MULTIDIM_ARRAY(complex));
+//        }
+
+//        bool isReusable() const
+//        {
+//            return reusable;
+//        }
+
+    private:
+
+        class Plan
+        {
+        public:
+
+            Plan(cufftHandle forward, cufftHandle backward)
+                    :   forward(forward), backward(backward)
+            {}
+
+            ~Plan()
+            {
+                cufftDestroy(forward);
+                cufftDestroy(backward);
+            }
+
+            cufftHandle forward, backward;
+        };
+
+        bool reusable;
+        int w, h, d;
+        float *realPtr, *complexPtr;
+        std::shared_ptr<Plan> plan;
+    };
+
         static pthread_mutex_t fftw_plan_mutex_new;
 };
+
+
+
+
+
+
+
 
 // This is to get NewFFTPlan::Plan<RFLOAT>
 template <typename T> struct NewFFTPlan {};
