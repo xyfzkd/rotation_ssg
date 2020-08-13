@@ -1,4 +1,5 @@
-#include <cufftw.h>
+
+#include "cuda_runtime.h"
 #include "acc_alignPatch.h"
 
 
@@ -14,8 +15,8 @@ void CuFFT::inverseFourierTransform(
     MultidimArray<fComplex> src2 = src;
 
     std::vector<int> N(0);
-    if (dest.zdim > 1) N.push_back(d);
-    if (dest.ydim > 1) N.push_back(h);
+    if (dest.zdim > 1) N.push_back(dest.zdim);
+    if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
 
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
