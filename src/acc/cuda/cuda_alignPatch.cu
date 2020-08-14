@@ -23,15 +23,19 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
     cufftHandle planIn;
-    cufftComplex *data;
+    cufftComplex *idata, *odata;
 
-    if (cudaGetLastError() != cudaSuccess){
-        fprintf(stderr, "Cuda error: Failed to allocate\n");
-        return;
-    }
+//    if (cudaGetLastError() != cudaSuccess){
+//        fprintf(stderr, "Cuda error: Failed to allocate\n");
+//        return;
+//    }
 
-    cudaMalloc((void**)&data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
+    cudaMalloc((void**)&real_data, sizeof(cufftComplex)*N[0]*N[1]);
+    cudaMalloc((void**)&comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
 
+
+    cudaMemcpy(comp_data, (cufftComplex*) MULTIDIM_ARRAY(src2), sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+    cudaMemcpy(real_data, MULTIDIM_ARRAY(dest), sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyHostToDevice);
 
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
@@ -42,9 +46,10 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
 
-    if (cufftExecC2R(planIn, (cufftComplex*) MULTIDIM_ARRAY(src2), MULTIDIM_ARRAY(dest)) != CUFFT_SUCCESS){
+    if (cufftExecC2R(planIn, comp_data, real_data) != CUFFT_SUCCESS){
         fprintf(stderr, "CUFFT Error: Unable to execute plan\n");
         return;
     }
-    cudaFree(data);
+    cudaFree(comp_data);
+    cudaFree(real_data);
 }
