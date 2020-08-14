@@ -29,7 +29,7 @@
 #include "src/jaz/img_proc/image_op.h"
 #include "src/funcs.h"
 #include "src/renderEER.h"
-#include "src/acc_alignPatch.h"
+#include "src/acc/acc_alignPatch.h"
 
 #define TIMING
 #ifdef TIMING
@@ -107,7 +107,17 @@ void MotioncorrRunner::read(int argc, char **argv, int rank)
 	fn_defect = parser.getOption("--defect_file","Location of a MOTIONCOR2-style detector defect file (x y w h) or a defect map (1 means bad)", "");
 	fn_archive = parser.getOption("--archive","Location of the directory for archiving movies in 4-byte MRC format","");
 	fn_other_motioncor2_args = parser.getOption("--other_motioncor2_args", "Additional arguments to MOTIONCOR2", "");
+
+    do_gpu = parser.checkOption("--gpu", "Use GPU acceleration when availiable");
 	gpu_ids = parser.getOption("--gpu", "Device ids for each MPI-thread, e.g 0:1:2:3", "");
+
+#ifndef CUDA
+    if(do_gpu)
+    {
+        std::cerr << "+ WARNING : Relion was compiled without CUDA of at least version 7.0 - you do NOT have support for GPUs" << std::endl;
+        do_gpu = false;
+    }
+#endif
 
 	int doseweight_section = parser.addSection("Dose-weighting options");
 	do_dose_weighting = parser.checkOption("--dose_weighting", "Use dose-weighting scheme");
@@ -1943,7 +1953,11 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 			RCTOC(TIMING_CCF_CALC);
 
 			RCTIC(TIMING_CCF_IFFT);
-            CuFFT::inverseFourierTransform(Fccs, Iccs());
+            if(do_gpu){
+                CuFFT::inverseFourierTransform(Fccs, Iccs());
+            } else
+                NewFFT::inverseFourierTransform(Fccs, Iccs());
+
 			RCTOC(TIMING_CCF_IFFT);
 
 			RCTIC(TIMING_CCF_FIND_MAX);
