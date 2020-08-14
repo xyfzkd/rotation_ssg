@@ -469,27 +469,27 @@ void MotioncorrRunner::run()
 		obsModel.opticsMdt.getValue(EMDL_CTF_VOLTAGE, voltage, optics_group_micrographs[imic]-1);
 		obsModel.opticsMdt.getValue(EMDL_MICROGRAPH_ORIGINAL_PIXEL_SIZE, angpix, optics_group_micrographs[imic]-1);
 
-//        test(mic);
+        test(mic);
 
-		bool result = false;
-		if (do_own)
-			result = executeOwnMotionCorrection(mic);
-		else if (do_motioncor2)
-			result = executeMotioncor2(mic);
-		else
-			REPORT_ERROR("Bug: by now it should be clear whether to use MotionCor2 or own implementation ...");
-
-		if (result) {
-			saveModel(mic);
-			plotShifts(fn_micrographs[imic], mic);
-		}
-	}
+//		bool result = false;
+//		if (do_own)
+//			result = executeOwnMotionCorrection(mic);
+//		else if (do_motioncor2)
+//			result = executeMotioncor2(mic);
+//		else
+//			REPORT_ERROR("Bug: by now it should be clear whether to use MotionCor2 or own implementation ...");
+//
+//		if (result) {
+//			saveModel(mic);
+//			plotShifts(fn_micrographs[imic], mic);
+//		}
+//	}
 
 	if (verb > 0)
 		progress_bar(fn_micrographs.size());
 
-	// Make a logfile with the shifts in pdf format and write output STAR files
-	generateLogFilePDFAndWriteStarFiles();
+//	// Make a logfile with the shifts in pdf format and write output STAR files
+//	generateLogFilePDFAndWriteStarFiles();
 
 #ifdef TIMING
         timer.printTimes(false);
