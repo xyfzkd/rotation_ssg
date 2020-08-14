@@ -2084,8 +2084,6 @@ bool MotioncorrRunner::test(Micrograph &mic){
     // TODO: Consider frame grouping in global alignment.
     logfile << std::endl << "Global alignment:" << std::endl;
     RCTIC(TIMING_GLOBAL_ALIGNMENT);
-=======
->>>>>>> d85489f642ff6b606ba075f9c4c9fd24a1e32497
     alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
     RCTOC(TIMING_GLOBAL_ALIGNMENT);
 }
