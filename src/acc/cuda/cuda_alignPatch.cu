@@ -23,7 +23,7 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
     cufftHandle planIn;
-    cufftComplex *idata, *odata;
+    cufftComplex *real_data, *comp_data;
 
 //    if (cudaGetLastError() != cudaSuccess){
 //        fprintf(stderr, "Cuda error: Failed to allocate\n");
