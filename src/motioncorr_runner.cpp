@@ -1247,105 +1247,105 @@ bool MotioncorrRunner::executeOwnMotionCorrection(Micrograph &mic) {
 	}
 	RCTOC(TIMING_GLOBAL_FFT);
 
-	RCTIC(TIMING_POWER_SPECTRUM);
-	// Write power spectrum for CTF estimation
-	if (grouping_for_ps > 0)
-	{
-		const RFLOAT target_pixel_size = 1.4; // value from CTFFIND 4.1
-
-		// NOTE: Image(X, Y) has MultidimArray(Y, X)!! X is the fast axis.
-		RCTIC(TIMING_POWER_SPECTRUM_SUM);
-		Image<float> PS_sum(nx, ny);
-		MultidimArray<fComplex> F_ps, F_ps_small;
-
-		// 0. Group and sum
-		PS_sum().initZeros();
-		PS_sum().setXmippOrigin();
-		for (int iframe = 0; iframe < n_frames; iframe += grouping_for_ps)
-		{
-			MultidimArray<fComplex> F_sum(Fframes[iframe]);
-			for (int j = 1; j < grouping_for_ps && j + iframe < n_frames; j++)
-			{
-				#pragma omp parallel for num_threads(n_threads)
-				FOR_ALL_DIRECT_ELEMENTS_IN_MULTIDIMARRAY(F_sum)
-					DIRECT_MULTIDIM_ELEM(F_sum, n) += DIRECT_MULTIDIM_ELEM(Fframes[j + iframe], n);
-			}
-
-			#pragma omp parallel for num_threads(n_threads)
-			FOR_ALL_ELEMENTS_IN_ARRAY2D(PS_sum()) // logical 2D access, i = logical_y, j = logical_x
-			{
-				// F(i, j) = conj(F(-i, -j))
-				if (j > 0)
-					A2D_ELEM(PS_sum(), i, j) += abs(FFTW2D_ELEM(F_sum, i, j)); // accessor is (Y, X)
-				else
-					A2D_ELEM(PS_sum(), i, j) += abs(FFTW2D_ELEM(F_sum, -i, -j));
-			}
-		}
-//#define DEBUG_PS
-#ifdef DEBUG_PS
-		std::cout << "size of Fframes: NX = " << XSIZE(Fframes[0]) << " NY = " << YSIZE(Fframes[0]) << std::endl;
-		std::cout << "size of PS_sum: NX = " << XSIZE(PS_sum()) << " NY = " << YSIZE(PS_sum()) << std::endl;
-#endif
-		RCTOC(TIMING_POWER_SPECTRUM_SUM);
-
-		// 1. Make it square
-		RCTIC(TIMING_POWER_SPECTRUM_SQUARE);
-		int ps_size_square = XMIPP_MIN(nx, ny);
-		if (nx != ny)
-		{
-			F_ps_small.resize(ps_size_square, ps_size_square / 2 + 1);
-			NewFFT::FourierTransform(PS_sum(), F_ps);
-			cropInFourierSpace(F_ps, F_ps_small);
-			NewFFT::inverseFourierTransform(F_ps_small, PS_sum());
-#ifdef DEBUG_PS
-			std::cout << "size of F_ps: NX = " << XSIZE(F_ps) << " NY = " << YSIZE(F_ps) << std::endl;
-			std::cout << "size of F_ps_small: NX = " << XSIZE(F_ps_small) << " NY = " << YSIZE(F_ps_small) << std::endl;
-			std::cout << "size of PS_sum in square: NX = " << XSIZE(PS_sum()) << " NY = " << YSIZE(PS_sum()) << std::endl;
-			PS_sum.write("ps_test_square.mrc");
-#endif
-		}
-		RCTOC(TIMING_POWER_SPECTRUM_SQUARE);
-
-		// 2. Crop the center
-		RCTIC(TIMING_POWER_SPECTRUM_CROP);
-		RFLOAT ps_angpix = (!early_binning) ? angpix : angpix * bin_factor;
-		int nx_needed = XSIZE(PS_sum());
-		if (ps_angpix < target_pixel_size)
-		{
-			nx_needed = CEIL(ps_size_square * ps_angpix / target_pixel_size);
-			nx_needed += nx_needed % 2;
-			ps_angpix = XSIZE(PS_sum()) * ps_angpix / nx_needed;
-		}
-		Image<float> PS_sum_cropped(nx_needed, nx_needed);
-		PS_sum().setXmippOrigin();
-		PS_sum_cropped().setXmippOrigin();
-		FOR_ALL_ELEMENTS_IN_ARRAY2D(PS_sum_cropped())
-			A2D_ELEM(PS_sum_cropped(), i, j) = A2D_ELEM(PS_sum(), i, j);
-
-#ifdef DEBUG_PS
-		std::cout << "size of PS_sum_cropped: NX = " << XSIZE(PS_sum_cropped()) << " NY = " << YSIZE(PS_sum_cropped()) << std::endl;
-		std::cout << "nx_needed = " << nx_needed << std::endl;
-		std::cout << "ps_angpix after cropping = " << ps_angpix << std::endl;
-		PS_sum_cropped.write("ps_test_cropped.mrc");
-#endif
-		RCTOC(TIMING_POWER_SPECTRUM_CROP);
-
-		// 3. Downsample
-		RCTIC(TIMING_POWER_SPECTRUM_RESIZE);
-		F_ps_small.reshape(ps_size, ps_size / 2 + 1);
-		F_ps_small.initZeros();
-		NewFFT::FourierTransform(PS_sum_cropped(), F_ps);
-		cropInFourierSpace(F_ps, F_ps_small);
-		NewFFT::inverseFourierTransform(F_ps_small, PS_sum());
-		RCTOC(TIMING_POWER_SPECTRUM_RESIZE);
-
-		// 4. Write
-		PS_sum.setSamplingRateInHeader(ps_angpix, ps_angpix);
-		PS_sum.write(fn_ps);
-		logfile << "Written the power spectrum for CTF estimation: " << fn_ps << std::endl;
-		logfile << "The pixel size for CTF estimation: " << ps_angpix << std::endl;
-	}
-	RCTOC(TIMING_POWER_SPECTRUM);
+//	RCTIC(TIMING_POWER_SPECTRUM);
+//	// Write power spectrum for CTF estimation
+//	if (grouping_for_ps > 0)
+//	{
+//		const RFLOAT target_pixel_size = 1.4; // value from CTFFIND 4.1
+//
+//		// NOTE: Image(X, Y) has MultidimArray(Y, X)!! X is the fast axis.
+//		RCTIC(TIMING_POWER_SPECTRUM_SUM);
+//		Image<float> PS_sum(nx, ny);
+//		MultidimArray<fComplex> F_ps, F_ps_small;
+//
+//		// 0. Group and sum
+//		PS_sum().initZeros();
+//		PS_sum().setXmippOrigin();
+//		for (int iframe = 0; iframe < n_frames; iframe += grouping_for_ps)
+//		{
+//			MultidimArray<fComplex> F_sum(Fframes[iframe]);
+//			for (int j = 1; j < grouping_for_ps && j + iframe < n_frames; j++)
+//			{
+//				#pragma omp parallel for num_threads(n_threads)
+//				FOR_ALL_DIRECT_ELEMENTS_IN_MULTIDIMARRAY(F_sum)
+//					DIRECT_MULTIDIM_ELEM(F_sum, n) += DIRECT_MULTIDIM_ELEM(Fframes[j + iframe], n);
+//			}
+//
+//			#pragma omp parallel for num_threads(n_threads)
+//			FOR_ALL_ELEMENTS_IN_ARRAY2D(PS_sum()) // logical 2D access, i = logical_y, j = logical_x
+//			{
+//				// F(i, j) = conj(F(-i, -j))
+//				if (j > 0)
+//					A2D_ELEM(PS_sum(), i, j) += abs(FFTW2D_ELEM(F_sum, i, j)); // accessor is (Y, X)
+//				else
+//					A2D_ELEM(PS_sum(), i, j) += abs(FFTW2D_ELEM(F_sum, -i, -j));
+//			}
+//		}
+////#define DEBUG_PS
+//#ifdef DEBUG_PS
+//		std::cout << "size of Fframes: NX = " << XSIZE(Fframes[0]) << " NY = " << YSIZE(Fframes[0]) << std::endl;
+//		std::cout << "size of PS_sum: NX = " << XSIZE(PS_sum()) << " NY = " << YSIZE(PS_sum()) << std::endl;
+//#endif
+//		RCTOC(TIMING_POWER_SPECTRUM_SUM);
+//
+//		// 1. Make it square
+//		RCTIC(TIMING_POWER_SPECTRUM_SQUARE);
+//		int ps_size_square = XMIPP_MIN(nx, ny);
+//		if (nx != ny)
+//		{
+//			F_ps_small.resize(ps_size_square, ps_size_square / 2 + 1);
+//			NewFFT::FourierTransform(PS_sum(), F_ps);
+//			cropInFourierSpace(F_ps, F_ps_small);
+//			NewFFT::inverseFourierTransform(F_ps_small, PS_sum());
+//#ifdef DEBUG_PS
+//			std::cout << "size of F_ps: NX = " << XSIZE(F_ps) << " NY = " << YSIZE(F_ps) << std::endl;
+//			std::cout << "size of F_ps_small: NX = " << XSIZE(F_ps_small) << " NY = " << YSIZE(F_ps_small) << std::endl;
+//			std::cout << "size of PS_sum in square: NX = " << XSIZE(PS_sum()) << " NY = " << YSIZE(PS_sum()) << std::endl;
+//			PS_sum.write("ps_test_square.mrc");
+//#endif
+//		}
+//		RCTOC(TIMING_POWER_SPECTRUM_SQUARE);
+//
+//		// 2. Crop the center
+//		RCTIC(TIMING_POWER_SPECTRUM_CROP);
+//		RFLOAT ps_angpix = (!early_binning) ? angpix : angpix * bin_factor;
+//		int nx_needed = XSIZE(PS_sum());
+//		if (ps_angpix < target_pixel_size)
+//		{
+//			nx_needed = CEIL(ps_size_square * ps_angpix / target_pixel_size);
+//			nx_needed += nx_needed % 2;
+//			ps_angpix = XSIZE(PS_sum()) * ps_angpix / nx_needed;
+//		}
+//		Image<float> PS_sum_cropped(nx_needed, nx_needed);
+//		PS_sum().setXmippOrigin();
+//		PS_sum_cropped().setXmippOrigin();
+//		FOR_ALL_ELEMENTS_IN_ARRAY2D(PS_sum_cropped())
+//			A2D_ELEM(PS_sum_cropped(), i, j) = A2D_ELEM(PS_sum(), i, j);
+//
+//#ifdef DEBUG_PS
+//		std::cout << "size of PS_sum_cropped: NX = " << XSIZE(PS_sum_cropped()) << " NY = " << YSIZE(PS_sum_cropped()) << std::endl;
+//		std::cout << "nx_needed = " << nx_needed << std::endl;
+//		std::cout << "ps_angpix after cropping = " << ps_angpix << std::endl;
+//		PS_sum_cropped.write("ps_test_cropped.mrc");
+//#endif
+//		RCTOC(TIMING_POWER_SPECTRUM_CROP);
+//
+//		// 3. Downsample
+//		RCTIC(TIMING_POWER_SPECTRUM_RESIZE);
+//		F_ps_small.reshape(ps_size, ps_size / 2 + 1);
+//		F_ps_small.initZeros();
+//		NewFFT::FourierTransform(PS_sum_cropped(), F_ps);
+//		cropInFourierSpace(F_ps, F_ps_small);
+//		NewFFT::inverseFourierTransform(F_ps_small, PS_sum());
+//		RCTOC(TIMING_POWER_SPECTRUM_RESIZE);
+//
+//		// 4. Write
+//		PS_sum.setSamplingRateInHeader(ps_angpix, ps_angpix);
+//		PS_sum.write(fn_ps);
+//		logfile << "Written the power spectrum for CTF estimation: " << fn_ps << std::endl;
+//		logfile << "The pixel size for CTF estimation: " << ps_angpix << std::endl;
+//	}
+//	RCTOC(TIMING_POWER_SPECTRUM);
 
 	// Global alignment
 	// TODO: Consider frame grouping in global alignment.
