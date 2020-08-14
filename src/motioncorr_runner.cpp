@@ -1756,7 +1756,6 @@ bool MotioncorrRunner::test(Micrograph &mic){
 
     std::vector<RFLOAT> xshifts(n_frames), yshifts(n_frames);
 
-<<<<<<< HEAD
     // Setup grouping
     logfile << "Frame grouping: n_frames = " << n_frames << ", requested group size = " << group << std::endl;
     const int n_groups = n_frames / group;
