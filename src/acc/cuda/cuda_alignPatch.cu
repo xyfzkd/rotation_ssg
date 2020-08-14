@@ -3,7 +3,7 @@
 #include "cuda_runtime.h"
 //#include "src/acc/cuda/cuda_alignPatch.h"
 #include "src/acc/acc_alignPatch.h"
-
+#include <stdio.h>
 
 void CuFFT::inverseFourierTransform(
         MultidimArray<fComplex>& src,
@@ -20,12 +20,13 @@ void CuFFT::inverseFourierTransform(
     if (dest.zdim > 1) N.push_back(dest.zdim);
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
-
-    cudaMalloc((void**)&data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
     if (cudaGetLastError() != cudaSuccess){
         fprintf(stderr, "Cuda error: Failed to allocate\n");
         return;
     }
+    getch();
+    cudaMalloc((void**)&data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
+
 
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
     cufftHandle planIn;
