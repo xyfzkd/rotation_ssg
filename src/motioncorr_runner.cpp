@@ -1232,20 +1232,20 @@ bool MotioncorrRunner::executeOwnMotionCorrection(Micrograph &mic) {
 	}
 
 	// FFT
-	RCTIC(TIMING_GLOBAL_FFT);
-	#pragma omp parallel for num_threads(n_threads)
-	for (int iframe = 0; iframe < n_frames; iframe++) {
-		if (!early_binning) {
-			NewFFT::FourierTransform(Iframes[iframe](), Fframes[iframe]);
-		} else {
-			MultidimArray<fComplex> Fframe;
-			NewFFT::FourierTransform(Iframes[iframe](), Fframe);
-			Fframes[iframe].reshape(ny, nx / 2 + 1);
-			cropInFourierSpace(Fframe, Fframes[iframe]);
-		}
-		Iframes[iframe].clear(); // save some memory (global alignment use the most memory)
-	}
-	RCTOC(TIMING_GLOBAL_FFT);
+//	RCTIC(TIMING_GLOBAL_FFT);
+//	#pragma omp parallel for num_threads(n_threads)
+//	for (int iframe = 0; iframe < n_frames; iframe++) {
+//		if (!early_binning) {
+//			NewFFT::FourierTransform(Iframes[iframe](), Fframes[iframe]);
+//		} else {
+//			MultidimArray<fComplex> Fframe;
+//			NewFFT::FourierTransform(Iframes[iframe](), Fframe);
+//			Fframes[iframe].reshape(ny, nx / 2 + 1);
+//			cropInFourierSpace(Fframe, Fframes[iframe]);
+//		}
+//		Iframes[iframe].clear(); // save some memory (global alignment use the most memory)
+//	}
+//	RCTOC(TIMING_GLOBAL_FFT);
 
 //	RCTIC(TIMING_POWER_SPECTRUM);
 //	// Write power spectrum for CTF estimation
