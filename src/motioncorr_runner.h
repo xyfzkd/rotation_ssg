@@ -38,6 +38,9 @@ class MotioncorrRunner
 {
 public:
 
+    // For GPU-acceleration
+    void* cudaRnr;
+
 	// I/O Parser
 	IOParser parser;
 
@@ -141,6 +144,9 @@ public:
 
 	// Output STAR file
 	MetaDataTable MDavg, MDmov;
+
+    // use GPU hardware?
+    bool do_gpu;
 
 	// Which GPU devices to use?
 	int devCount;
