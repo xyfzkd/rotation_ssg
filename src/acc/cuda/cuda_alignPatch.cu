@@ -47,10 +47,10 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
 
-    if (cufftExecC2R(planIn, comp_data, real_data) != CUFFT_SUCCESS){
-        fprintf(stderr, "CUFFT Error: Unable to execute plan\n");
-        return;
-    }
+    cufftExecC2R(planIn, comp_data, real_data);
+
+    cudaMemcpy(MULTIDIM_ARRAY(dest),real_data, sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyDeviceToHost);
+
     cudaFree(comp_data);
     cudaFree(real_data);
 }
