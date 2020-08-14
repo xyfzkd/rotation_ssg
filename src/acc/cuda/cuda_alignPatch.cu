@@ -21,15 +21,17 @@ void CuFFT::inverseFourierTransform(
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
 
-    /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
-    cufftHandle planIn;
-    cufftComplex *data;
-
     cudaMalloc((void**)&data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
     if (cudaGetLastError() != cudaSuccess){
         fprintf(stderr, "Cuda error: Failed to allocate\n");
         return;
     }
+
+    /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
+    cufftHandle planIn;
+    cufftComplex *data;
+
+
 
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);

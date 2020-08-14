@@ -325,7 +325,7 @@ align - shift in Fourier space     : 35.368 sec (11336 microsec/operation)
 
 236 FloatPlan p(dest, src2);
 
-
+```
 NewFFT::FloatPlan::FloatPlan(
 		MultidimArray<float>& real,
 		MultidimArray<fComplex>& complex,
@@ -366,3 +366,31 @@ NewFFT::FloatPlan::FloatPlan(
 	
 	plan = std::shared_ptr<Plan>(new Plan(planForward, planBackward));
 }
+```
+
+# 初始版本
+
+*  gpu mode
+
+
+```
+align - prep weight                : 0.944 sec (1513 microsec/operation)
+align - make reference             : 2.738 sec (4389 microsec/operation)
+align - calc CCF (in thread)       : 1.731 sec (115 microsec/operation)
+align - iFFT CCF (in thread)       : 5.704 sec (380 microsec/operation)
+align - argmax CCF (in thread)     : 0.04 sec (2 microsec/operation)
+align - shift in Fourier space     : 6.344 sec (10167 microsec/operation)
+```
+但是`Cuda error: Failed to allocate`，写得有问题
+
+*  cpu mode
+
+
+```
+align - prep weight                : 0.954 sec (1528 microsec/operation)
+align - make reference             : 6.388 sec (4991 microsec/operation)
+align - calc CCF (in thread)       : 4.771 sec (155 microsec/operation)
+align - iFFT CCF (in thread)       : 37.949 sec (1235 microsec/operation)
+align - argmax CCF (in thread)     : 0.072 sec (2 microsec/operation)
+align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
+```

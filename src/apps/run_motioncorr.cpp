@@ -19,7 +19,7 @@
  ***************************************************************************/
 #include <src/motioncorr_runner.h>
 #ifdef CUDA
-#include <src/acc/cuda/acc_alignPatch.h>
+//#include <src/acc/cuda/acc_alignPatch.h>
 #endif
 
 int main(int argc, char *argv[])
