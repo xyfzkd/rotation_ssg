@@ -1755,7 +1755,7 @@ bool MotioncorrRunner::test(Micrograph &mic){
     Fframes.resize(n_frames);
     std::vector<RFLOAT> xshifts(n_frames), yshifts(n_frames);
 
-    alignPatch(Fframes, nx, ny, , xshifts, yshifts, logfile);
+    alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
 }
 
 
