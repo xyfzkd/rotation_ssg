@@ -1,7 +1,8 @@
 #include <cufftw.h>
 #include <cufft.h>
 #include "cuda_runtime.h"
-#include "src/acc/alignPatch.h"
+//#include "src/acc/cuda/cuda_alignPatch.h"
+#include "src/acc/acc_alignPatch.h"
 
 
 void CuFFT::inverseFourierTransform(
