@@ -483,7 +483,7 @@ void MotioncorrRunner::run()
 //			saveModel(mic);
 //			plotShifts(fn_micrographs[imic], mic);
 //		}
-//	}
+	}
 
 	if (verb > 0)
 		progress_bar(fn_micrographs.size());
