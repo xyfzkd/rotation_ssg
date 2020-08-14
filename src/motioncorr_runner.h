@@ -167,6 +167,8 @@ public:
 	// Execute all MOTIONCORR jobs
 	void run();
 
+    bool test(Micrograph &mic);
+
 	// Given an input fn_mic filename, this function will determine the names of the output corrected image (fn_avg) and the corrected movie (fn_mov).
 	FileName getOutputFileNames(FileName fn_mic);
 

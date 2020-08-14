@@ -394,3 +394,67 @@ align - iFFT CCF (in thread)       : 37.949 sec (1235 microsec/operation)
 align - argmax CCF (in thread)     : 0.072 sec (2 microsec/operation)
 align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
 ```
+
+	FileName fn_mic = mic.getMovieFilename();
+	FileName fn_avg = getOutputFileNames(fn_mic);
+	FileName fn_avg_noDW = fn_avg.withoutExtension() + "_noDW.mrc";
+	FileName fn_log = fn_avg.withoutExtension() + ".log";
+	FileName fn_ps = fn_avg.withoutExtension() + "_PS.mrc";
+	std::ofstream logfile;
+	logfile.open(fn_log);
+
+	// EER related things
+	// TODO: will be refactored
+	EERRenderer renderer;
+	const bool isEER = EERRenderer::isEER(mic.getMovieFilename());
+
+	int n_io_threads = n_threads;
+	logfile << "Working on " << fn_mic << " with " << n_threads << " thread(s)." << std::endl << std::endl;
+	if (max_io_threads > 0 && n_io_threads > max_io_threads)
+	{
+		n_io_threads = max_io_threads;
+		logfile << "Limitted the number of IO threads per movie to " << n_io_threads << " thread(s)." << std::endl;
+	}
+
+	Image<float> Ihead, Igain, Iref;
+	std::vector<MultidimArray<fComplex> > Fframes;
+	std::vector<Image<float> > Iframes;
+	std::vector<int> frames; // 0-indexed
+
+	RFLOAT output_angpix = angpix * bin_factor;
+	RFLOAT prescaling = 1;
+
+	const int hotpixel_sigma = 6;
+	const int fit_rmsd_threshold = 10; // px
+	int nx, ny, nn;
+
+	// Check image size
+	if (!isEER)
+	{
+		Ihead.read(fn_mic, false, -1, false, true); // select_img -1, mmap false, is_2D true
+		nx = XSIZE(Ihead()); ny = YSIZE(Ihead()); nn = NSIZE(Ihead());
+	}
+	else
+	{
+		renderer.read(fn_mic, eer_upsampling);
+		nx = renderer.getWidth(); ny = renderer.getHeight();
+		nn = renderer.getNFrames() / eer_grouping; // remaining frames are truncated
+	}
+
+	// Which frame to use?
+	logfile << "Movie size: X = " << nx << " Y = " << ny << " N = " << nn << std::endl;
+	logfile << "Frames to be used:";
+	for (int i = 0; i < nn; i++) {
+		// For users, all numbers are 1-indexed. Internally they are 0-indexed.
+		int frame = i + 1;
+		if (frame < first_frame_sum) continue;
+		if (last_frame_sum > 0 && frame > last_frame_sum) continue;
+		frames.push_back(i);
+		logfile << " " << frame;
+	}
+	logfile << std::endl;
+
+	const int n_frames = frames.size();
+	Iframes.resize(n_frames);
+	Fframes.resize(n_frames);
+	std::vector<RFLOAT> xshifts(n_frames), yshifts(n_frames);
