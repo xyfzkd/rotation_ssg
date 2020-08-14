@@ -488,8 +488,8 @@ void MotioncorrRunner::run()
 	if (verb > 0)
 		progress_bar(fn_micrographs.size());
 
-	// Make a logfile with the shifts in pdf format and write output STAR files
-	generateLogFilePDFAndWriteStarFiles();
+//	// Make a logfile with the shifts in pdf format and write output STAR files
+//	generateLogFilePDFAndWriteStarFiles();
 
 #ifdef TIMING
         timer.printTimes(false);
@@ -1756,6 +1756,7 @@ bool MotioncorrRunner::test(Micrograph &mic){
 
     std::vector<RFLOAT> xshifts(n_frames), yshifts(n_frames);
 
+<<<<<<< HEAD
     // Setup grouping
     logfile << "Frame grouping: n_frames = " << n_frames << ", requested group size = " << group << std::endl;
     const int n_groups = n_frames / group;
@@ -1963,6 +1964,9 @@ bool MotioncorrRunner::test(Micrograph &mic){
     }
 
     // FFT
+=======
+
+>>>>>>> d85489f642ff6b606ba075f9c4c9fd24a1e32497
     RCTIC(TIMING_GLOBAL_FFT);
 #pragma omp parallel for num_threads(n_threads)
     for (int iframe = 0; iframe < n_frames; iframe++) {
@@ -1978,6 +1982,7 @@ bool MotioncorrRunner::test(Micrograph &mic){
     }
     RCTOC(TIMING_GLOBAL_FFT);
 
+<<<<<<< HEAD
     RCTIC(TIMING_POWER_SPECTRUM);
     // Write power spectrum for CTF estimation
     if (grouping_for_ps > 0)
@@ -2082,6 +2087,8 @@ bool MotioncorrRunner::test(Micrograph &mic){
     // TODO: Consider frame grouping in global alignment.
     logfile << std::endl << "Global alignment:" << std::endl;
     RCTIC(TIMING_GLOBAL_ALIGNMENT);
+=======
+>>>>>>> d85489f642ff6b606ba075f9c4c9fd24a1e32497
     alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
     RCTOC(TIMING_GLOBAL_ALIGNMENT);
 }
@@ -2356,6 +2363,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 			RCTOC(TIMING_CCF_CALC);
 
 			RCTIC(TIMING_CCF_IFFT);
+
             if(do_gpu){
                 CuFFT::inverseFourierTransform(Fccs, Iccs());
             } else
