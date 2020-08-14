@@ -469,20 +469,20 @@ void MotioncorrRunner::run()
 		obsModel.opticsMdt.getValue(EMDL_CTF_VOLTAGE, voltage, optics_group_micrographs[imic]-1);
 		obsModel.opticsMdt.getValue(EMDL_MICROGRAPH_ORIGINAL_PIXEL_SIZE, angpix, optics_group_micrographs[imic]-1);
 
-        test(mic);
+//        test(mic);
 
-//		bool result = false;
-//		if (do_own)
-//			result = executeOwnMotionCorrection(mic);
-//		else if (do_motioncor2)
-//			result = executeMotioncor2(mic);
-//		else
-//			REPORT_ERROR("Bug: by now it should be clear whether to use MotionCor2 or own implementation ...");
-//
-//		if (result) {
-//			saveModel(mic);
-//			plotShifts(fn_micrographs[imic], mic);
-//		}
+		bool result = false;
+		if (do_own)
+			result = executeOwnMotionCorrection(mic);
+		else if (do_motioncor2)
+			result = executeMotioncor2(mic);
+		else
+			REPORT_ERROR("Bug: by now it should be clear whether to use MotionCor2 or own implementation ...");
+
+		if (result) {
+			saveModel(mic);
+			plotShifts(fn_micrographs[imic], mic);
+		}
 	}
 
 	if (verb > 0)
@@ -2044,6 +2044,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 			RCTOC(TIMING_CCF_CALC);
 
 			RCTIC(TIMING_CCF_IFFT);
+
             if(do_gpu){
                 CuFFT::inverseFourierTransform(Fccs, Iccs());
             } else
