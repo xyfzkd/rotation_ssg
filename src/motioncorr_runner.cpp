@@ -1353,300 +1353,300 @@ bool MotioncorrRunner::executeOwnMotionCorrection(Micrograph &mic) {
 	RCTIC(TIMING_GLOBAL_ALIGNMENT);
 	alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
 	RCTOC(TIMING_GLOBAL_ALIGNMENT);
-	for (int i = 0, ilim = xshifts.size(); i < ilim; i++) {
-		// Should be in the original pixel size
-		mic.setGlobalShift(frames[i] + 1, xshifts[i] * prescaling, yshifts[i] * prescaling); // 1-indexed
-        }
-
-	Iref().reshape(ny, nx);
-	Iref().initZeros();
-	RCTIC(TIMING_GLOBAL_IFFT);
-	#pragma omp parallel for num_threads(n_threads)
-	for (int iframe = 0; iframe < n_frames; iframe++) {
-		Iframes[iframe]().reshape(ny, nx);
-		NewFFT::inverseFourierTransform(Fframes[iframe], Iframes[iframe]());
-		// Unfortunately, we cannot deallocate Fframes here because of dose-weighting
-	}
-	RCTOC(TIMING_GLOBAL_IFFT);
-
-	// Patch based alignment
-	logfile << std::endl << "Local alignments:" << std::endl;
-	logfile << "Patches: X = " << patch_x << " Y = " << patch_y << std::endl;
-	bool do_local = (patch_x > 2) && (patch_y > 2);
-	if (!do_local) {
-		logfile << "Too few patches to do local alignments. Local alignment is skipped." << std::endl;
-	}
-
-	if (do_local) {
-		const int patch_nx = nx / patch_x, patch_ny = ny / patch_y, n_patches = patch_x * patch_y;
-		std::vector<RFLOAT> patch_xshifts, patch_yshifts, patch_frames, patch_xs, patch_ys;
-		std::vector<MultidimArray<fComplex> > Fpatches(n_groups);
-
-		int ipatch = 1;
-		for (int iy = 0; iy < patch_y; iy++) {
-			for (int ix = 0; ix < patch_x; ix++) {
-				int x_start = ix * patch_nx, y_start = iy * patch_ny; // Inclusive
-				int x_end = x_start + patch_nx, y_end = y_start + patch_ny; // Exclusive
-				if (x_end > nx) x_end = nx;
-				if (y_end > ny) y_end = ny;
-				// make patch size even
-				if ((x_end - x_start) % 2 == 1) {
-					if (x_end == nx) x_start++;
-					else x_end--;
-				}
-				if ((y_end - y_start) % 2 == 1) {
-					if (y_end == ny) y_start++;
-					else y_end--;
-				}
-
-				int x_center = (x_start + x_end - 1) / 2, y_center = (y_start + y_end - 1) / 2;
-				logfile << "Patch (" << iy + 1 << ", " << ix + 1 << "): " << ipatch << " / " << patch_x * patch_y;
-				logfile << ", X range = [" << x_start << ", " << x_end << "), Y range = [" << y_start << ", " << y_end << ")";
-				logfile << ", Center = (" << x_center << ", " << y_center << ")" << std::endl;
-				ipatch++;
-
-				std::vector<RFLOAT> local_xshifts(n_groups), local_yshifts(n_groups);
-				RCTIC(TIMING_PREP_PATCH);
-				std::vector<MultidimArray<float> >Ipatches(n_threads);
-				#pragma omp parallel for num_threads(n_threads)
-				for (int igroup = 0; igroup < n_groups; igroup++) {
-					const int tid = omp_get_thread_num();
-					Ipatches[tid].reshape(y_end - y_start, x_end - x_start); // end is not included
-					RCTIC(TIMING_CLIP_PATCH);
-					for (int iframe = group_start[igroup]; iframe < group_start[igroup] + group_size[igroup]; iframe++) {
-						for (int ipy = y_start; ipy < y_end; ipy++) {
-							for (int ipx = x_start; ipx < x_end; ipx++) {
-								DIRECT_A2D_ELEM(Ipatches[tid], ipy - y_start, ipx - x_start) = DIRECT_A2D_ELEM(Iframes[iframe](), ipy, ipx);
-							}
-						}
-					}
-					RCTOC(TIMING_CLIP_PATCH);
-
-					RCTIC(TIMING_PATCH_FFT);
-					NewFFT::FourierTransform(Ipatches[tid], Fpatches[igroup]);
-					RCTOC(TIMING_PATCH_FFT);
-				}
-				RCTOC(TIMING_PREP_PATCH);
-
-				RCTIC(TIMING_PATCH_ALIGN);
-				bool converged = alignPatch(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
-				RCTOC(TIMING_PATCH_ALIGN);
-				if (!converged) continue;
-
-				std::vector<RFLOAT> interpolated_xshifts(n_frames), interpolated_yshifts(n_frames);
-				interpolateShifts(group_start, group_size, local_xshifts, local_yshifts, n_frames, interpolated_xshifts, interpolated_yshifts);
-				if (interpolate_shifts) {
-					// Recenter to the first frame
-					for (int iframe = 0; iframe < n_frames; iframe++) {
-						interpolated_xshifts[iframe] -= interpolated_xshifts[0];
-						interpolated_yshifts[iframe] -= interpolated_yshifts[0];
-					}
-					// Store shifts
-					for (int iframe = 0; iframe < n_frames; iframe++) {
-						patch_xshifts.push_back(interpolated_xshifts[iframe]);
-						patch_yshifts.push_back(interpolated_yshifts[iframe]);
-						patch_frames.push_back(iframe);
-						patch_xs.push_back(x_center);
-						patch_ys.push_back(y_center);
-					}
-				} else { // only recenter to the center
-					for (int igroup = 0; igroup < n_groups; igroup++) {
-						patch_xshifts.push_back(local_xshifts[igroup] - interpolated_xshifts[0]);
-						patch_yshifts.push_back(local_yshifts[igroup] - interpolated_yshifts[0]);
-						RFLOAT middle_frame = group_start[igroup] + group_size[igroup] / 2.0;
-						patch_frames.push_back(middle_frame);
-						patch_xs.push_back(x_center);
-						patch_ys.push_back(y_center);
-					}
-				}
-			}
-		}
-		Fpatches.clear();
-
-		// Fit polynomial model
-
-		RCTIC(TIMING_FIT_POLYNOMIAL);
-		const int n_obs = patch_frames.size();
-		const int n_params = 18;
-
-		if (n_obs <= n_params) {
-			std::cerr << fn_mic << ": too few valid local trajectories to fit local motion model." << std::endl;
-			mic.model = NULL;
-			goto skip_fitting; // TODO: Refactor!
-		}
-
-		Matrix2D <RFLOAT> matA(n_obs, n_params);
-		Matrix1D <RFLOAT> vecX(n_obs), vecY(n_obs), coeffX(n_params), coeffY(n_params);
-		for (int i = 0; i < n_obs; i++) {
-			VEC_ELEM(vecX, i) = patch_xshifts[i]; VEC_ELEM(vecY, i) = patch_yshifts[i];
-
-			const RFLOAT x = patch_xs[i] / nx - 0.5;
-			const RFLOAT y = patch_ys[i] / ny - 0.5;
-			const RFLOAT z = patch_frames[i];
-			const RFLOAT x2 = x * x, y2 = y * y, xy = x * y, z2 = z * z;
-			const RFLOAT z3 = z2 * z;
-
-			MAT_ELEM(matA, i, 0)  =      z;
-			MAT_ELEM(matA, i, 1)  =      z2;
-			MAT_ELEM(matA, i, 2)  =      z3;
-
-			MAT_ELEM(matA, i, 3)  = x  * z;
-			MAT_ELEM(matA, i, 4)  = x  * z2;
-			MAT_ELEM(matA, i, 5)  = x  * z3;
-
-			MAT_ELEM(matA, i, 6)  = x2 * z;
-			MAT_ELEM(matA, i, 7)  = x2 * z2;
-			MAT_ELEM(matA, i, 8)  = x2 * z3;
-
-			MAT_ELEM(matA, i, 9)  = y  * z;
-			MAT_ELEM(matA, i, 10) = y  * z2;
-			MAT_ELEM(matA, i, 11) = y  * z3;
-
-			MAT_ELEM(matA, i, 12) = y2 * z;
-			MAT_ELEM(matA, i, 13) = y2 * z2;
-			MAT_ELEM(matA, i, 14) = y2 * z3;
-
-			MAT_ELEM(matA, i, 15) = xy * z;
-			MAT_ELEM(matA, i, 16) = xy * z2;
-			MAT_ELEM(matA, i, 17) = xy * z3;
-		}
-
-		const RFLOAT EPS = 1e-10;
-		solve(matA, vecX, coeffX, EPS);
-		solve(matA, vecY, coeffY, EPS);
-
-#ifdef DEBUG_OWN
-		std::cout << "Polynomial fitting coefficients for X and Y:" << std::endl;
-		for (int i = 0; i < n_params; i++) {
-			std::cout << i << " " << coeffX(i) << " " << coeffY(i) << std::endl;
-		}
-#endif
-
-		ThirdOrderPolynomialModel *model = new ThirdOrderPolynomialModel();
-		model->coeffX = coeffX; model->coeffY = coeffY;
-		mic.model = model;
-
-#ifdef DEBUG_OWN
-		std::cout << "Polynomial Fitting:" << std::endl;
-#endif
-		RFLOAT rms_x = 0, rms_y = 0;
-	        for (int i = 0; i < n_obs; i++) {
-			RFLOAT x_fitted, y_fitted;
-			const RFLOAT x = patch_xs[i] / nx - 0.5;
-			const RFLOAT y = patch_ys[i] / ny - 0.5;
-			const RFLOAT z = patch_frames[i];
-
-			model->getShiftAt(z, x, y, x_fitted, y_fitted);
-			rms_x += (patch_xshifts[i] - x_fitted) * (patch_xshifts[i] - x_fitted);
-			rms_y += (patch_yshifts[i] - y_fitted) * (patch_yshifts[i] - y_fitted);
-
-			// These shifts and RMSDs are for reporting, so should be in the original pixel size
-			mic.patchX.push_back(patch_xs[i] * prescaling);
-			mic.patchY.push_back(patch_ys[i] * prescaling);
-			mic.patchZ.push_back(z + first_frame_sum); // 1-indexed
-			mic.localShiftX.push_back(patch_xshifts[i] * prescaling);
-			mic.localShiftY.push_back(patch_yshifts[i] * prescaling);
-			mic.localFitX.push_back(x_fitted * prescaling);
-			mic.localFitY.push_back(y_fitted * prescaling);
-
-#ifdef DEBUG_OWN
-			std::cout << " x = " << x << " y = " << y << " z = " << z;
-			std::cout << ", Xobs = " << patch_xshifts[i] * prescaling << " Xfit = " << x_fitted * prescaling;
-			std::cout << ", Yobs = " << patch_yshifts[i] * prescaling << " Yfit = " << y_fitted * prescaling << std::endl;
-#endif
-		}
-		rms_x = std::sqrt(rms_x / n_obs) * prescaling; rms_y = std::sqrt(rms_y / n_obs) * prescaling;
-		logfile << std::endl << "Polynomial fit RMSD: X = " << rms_x << " px Y = " << rms_y << " px" << std::endl;
-		if (rms_x >= fit_rmsd_threshold || rms_y >= fit_rmsd_threshold) {
-			logfile << "The polynomial motion model did not explain the observation very well." << std::endl;
-			logfile << "Local correction is disabled for this micrograph." << std::endl;
-			delete mic.model;
-			mic.model = NULL;
-
-			// remove fitted trajectories
-			for (int i = 0, ilim = mic.localFitX.size(); i < ilim; i++) {
-				mic.localFitX[i] = 0;
-				mic.localFitY[i] = 0;
-			}
-		}
-		RCTOC(TIMING_FIT_POLYNOMIAL);
-	} else { // !do_local
-		mic.model = NULL;
-	}
-
-skip_fitting:
-	if (!do_dose_weighting || save_noDW) {
-		Iref().initZeros(Iframes[0]());
-
-		RCTIC(TIMING_REAL_SPACE_INTERPOLATION);
-		logfile << "Summing frames before dose weighting: ";
-		realSpaceInterpolation(Iref, Iframes, mic.model, logfile);
-		logfile << " done" << std::endl;
-		RCTOC(TIMING_REAL_SPACE_INTERPOLATION);
-
-		// Apply binning
-		RCTIC(TIMING_BINNING);
-		if (!early_binning && bin_factor != 1) {
-			binNonSquareImage(Iref, bin_factor);
-		}
-		RCTOC(TIMING_BINNING);
-
-		// Final output
-                Iref.setSamplingRateInHeader(output_angpix, output_angpix);
-		Iref.write(!do_dose_weighting ? fn_avg : fn_avg_noDW);
-		logfile << "Written aligned but non-dose weighted sum to " << (!do_dose_weighting ? fn_avg : fn_avg_noDW) << std::endl;
-	}
-
-	// Dose weighting
-	if (do_dose_weighting) {
-		RCTIC(TIMING_DOSE_WEIGHTING);
-		if (std::abs(voltage - 300) > 2 && std::abs(voltage - 200) > 2 && std::abs(voltage - 100) > 2) {
-			REPORT_ERROR("Sorry, dose weighting is supported only for 300, 200 or 100 kV");
-		}
-
-		std::vector <RFLOAT> doses(n_frames);
-		for (int iframe = 0; iframe < n_frames; iframe++) {
-			// dose AFTER each frame.
-			doses[iframe] = pre_exposure + dose_per_frame * (frames[iframe] + 1);
-			if (std::abs(voltage - 200) <= 2) {
-				doses[iframe] /= 0.8; // 200 kV electron is more damaging.
-			} else if (std::abs(voltage - 100) <= 2) {
-				doses[iframe] /= 0.64; // 100 kV electron is much more damaging.
-			}
-		}
-
-		RCTIC(TIMING_DW_WEIGHT);
-		doseWeighting(Fframes, doses, angpix * prescaling);
-		RCTOC(TIMING_DW_WEIGHT);
-
-		// Update real space images
-		RCTIC(TIMING_DW_IFFT);
-		#pragma omp parallel for num_threads(n_threads)
-		for (int iframe = 0; iframe < n_frames; iframe++) {
-			NewFFT::inverseFourierTransform(Fframes[iframe], Iframes[iframe]());
-		}
-		RCTOC(TIMING_DW_IFFT);
-		RCTOC(TIMING_DOSE_WEIGHTING);
-
-		Iref().initZeros(Iframes[0]());
-		RCTIC(TIMING_REAL_SPACE_INTERPOLATION);
-		logfile << "Summing frames after dose weighting: ";
-		realSpaceInterpolation(Iref, Iframes, mic.model, logfile);
-		logfile << " done" << std::endl;
-		RCTOC(TIMING_REAL_SPACE_INTERPOLATION);
-
-		// Apply binning
-		RCTIC(TIMING_BINNING);
-		if (!early_binning && bin_factor != 1) {
-			binNonSquareImage(Iref, bin_factor);
-		}
-		RCTOC(TIMING_BINNING);
-
-		// Final output
-                Iref.setSamplingRateInHeader(output_angpix, output_angpix);
-		Iref.write(fn_avg);
-		logfile << "Written aligned and dose-weighted sum to " << fn_avg << std::endl;
-	}
+//	for (int i = 0, ilim = xshifts.size(); i < ilim; i++) {
+//		// Should be in the original pixel size
+//		mic.setGlobalShift(frames[i] + 1, xshifts[i] * prescaling, yshifts[i] * prescaling); // 1-indexed
+//        }
+//
+//	Iref().reshape(ny, nx);
+//	Iref().initZeros();
+//	RCTIC(TIMING_GLOBAL_IFFT);
+//	#pragma omp parallel for num_threads(n_threads)
+//	for (int iframe = 0; iframe < n_frames; iframe++) {
+//		Iframes[iframe]().reshape(ny, nx);
+//		NewFFT::inverseFourierTransform(Fframes[iframe], Iframes[iframe]());
+//		// Unfortunately, we cannot deallocate Fframes here because of dose-weighting
+//	}
+//	RCTOC(TIMING_GLOBAL_IFFT);
+//
+//	// Patch based alignment
+//	logfile << std::endl << "Local alignments:" << std::endl;
+//	logfile << "Patches: X = " << patch_x << " Y = " << patch_y << std::endl;
+//	bool do_local = (patch_x > 2) && (patch_y > 2);
+//	if (!do_local) {
+//		logfile << "Too few patches to do local alignments. Local alignment is skipped." << std::endl;
+//	}
+//
+//	if (do_local) {
+//		const int patch_nx = nx / patch_x, patch_ny = ny / patch_y, n_patches = patch_x * patch_y;
+//		std::vector<RFLOAT> patch_xshifts, patch_yshifts, patch_frames, patch_xs, patch_ys;
+//		std::vector<MultidimArray<fComplex> > Fpatches(n_groups);
+//
+//		int ipatch = 1;
+//		for (int iy = 0; iy < patch_y; iy++) {
+//			for (int ix = 0; ix < patch_x; ix++) {
+//				int x_start = ix * patch_nx, y_start = iy * patch_ny; // Inclusive
+//				int x_end = x_start + patch_nx, y_end = y_start + patch_ny; // Exclusive
+//				if (x_end > nx) x_end = nx;
+//				if (y_end > ny) y_end = ny;
+//				// make patch size even
+//				if ((x_end - x_start) % 2 == 1) {
+//					if (x_end == nx) x_start++;
+//					else x_end--;
+//				}
+//				if ((y_end - y_start) % 2 == 1) {
+//					if (y_end == ny) y_start++;
+//					else y_end--;
+//				}
+//
+//				int x_center = (x_start + x_end - 1) / 2, y_center = (y_start + y_end - 1) / 2;
+//				logfile << "Patch (" << iy + 1 << ", " << ix + 1 << "): " << ipatch << " / " << patch_x * patch_y;
+//				logfile << ", X range = [" << x_start << ", " << x_end << "), Y range = [" << y_start << ", " << y_end << ")";
+//				logfile << ", Center = (" << x_center << ", " << y_center << ")" << std::endl;
+//				ipatch++;
+//
+//				std::vector<RFLOAT> local_xshifts(n_groups), local_yshifts(n_groups);
+//				RCTIC(TIMING_PREP_PATCH);
+//				std::vector<MultidimArray<float> >Ipatches(n_threads);
+//				#pragma omp parallel for num_threads(n_threads)
+//				for (int igroup = 0; igroup < n_groups; igroup++) {
+//					const int tid = omp_get_thread_num();
+//					Ipatches[tid].reshape(y_end - y_start, x_end - x_start); // end is not included
+//					RCTIC(TIMING_CLIP_PATCH);
+//					for (int iframe = group_start[igroup]; iframe < group_start[igroup] + group_size[igroup]; iframe++) {
+//						for (int ipy = y_start; ipy < y_end; ipy++) {
+//							for (int ipx = x_start; ipx < x_end; ipx++) {
+//								DIRECT_A2D_ELEM(Ipatches[tid], ipy - y_start, ipx - x_start) = DIRECT_A2D_ELEM(Iframes[iframe](), ipy, ipx);
+//							}
+//						}
+//					}
+//					RCTOC(TIMING_CLIP_PATCH);
+//
+//					RCTIC(TIMING_PATCH_FFT);
+//					NewFFT::FourierTransform(Ipatches[tid], Fpatches[igroup]);
+//					RCTOC(TIMING_PATCH_FFT);
+//				}
+//				RCTOC(TIMING_PREP_PATCH);
+//
+//				RCTIC(TIMING_PATCH_ALIGN);
+//				bool converged = alignPatch(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
+//				RCTOC(TIMING_PATCH_ALIGN);
+//				if (!converged) continue;
+//
+//				std::vector<RFLOAT> interpolated_xshifts(n_frames), interpolated_yshifts(n_frames);
+//				interpolateShifts(group_start, group_size, local_xshifts, local_yshifts, n_frames, interpolated_xshifts, interpolated_yshifts);
+//				if (interpolate_shifts) {
+//					// Recenter to the first frame
+//					for (int iframe = 0; iframe < n_frames; iframe++) {
+//						interpolated_xshifts[iframe] -= interpolated_xshifts[0];
+//						interpolated_yshifts[iframe] -= interpolated_yshifts[0];
+//					}
+//					// Store shifts
+//					for (int iframe = 0; iframe < n_frames; iframe++) {
+//						patch_xshifts.push_back(interpolated_xshifts[iframe]);
+//						patch_yshifts.push_back(interpolated_yshifts[iframe]);
+//						patch_frames.push_back(iframe);
+//						patch_xs.push_back(x_center);
+//						patch_ys.push_back(y_center);
+//					}
+//				} else { // only recenter to the center
+//					for (int igroup = 0; igroup < n_groups; igroup++) {
+//						patch_xshifts.push_back(local_xshifts[igroup] - interpolated_xshifts[0]);
+//						patch_yshifts.push_back(local_yshifts[igroup] - interpolated_yshifts[0]);
+//						RFLOAT middle_frame = group_start[igroup] + group_size[igroup] / 2.0;
+//						patch_frames.push_back(middle_frame);
+//						patch_xs.push_back(x_center);
+//						patch_ys.push_back(y_center);
+//					}
+//				}
+//			}
+//		}
+//		Fpatches.clear();
+//
+//		// Fit polynomial model
+//
+//		RCTIC(TIMING_FIT_POLYNOMIAL);
+//		const int n_obs = patch_frames.size();
+//		const int n_params = 18;
+//
+//		if (n_obs <= n_params) {
+//			std::cerr << fn_mic << ": too few valid local trajectories to fit local motion model." << std::endl;
+//			mic.model = NULL;
+//			goto skip_fitting; // TODO: Refactor!
+//		}
+//
+//		Matrix2D <RFLOAT> matA(n_obs, n_params);
+//		Matrix1D <RFLOAT> vecX(n_obs), vecY(n_obs), coeffX(n_params), coeffY(n_params);
+//		for (int i = 0; i < n_obs; i++) {
+//			VEC_ELEM(vecX, i) = patch_xshifts[i]; VEC_ELEM(vecY, i) = patch_yshifts[i];
+//
+//			const RFLOAT x = patch_xs[i] / nx - 0.5;
+//			const RFLOAT y = patch_ys[i] / ny - 0.5;
+//			const RFLOAT z = patch_frames[i];
+//			const RFLOAT x2 = x * x, y2 = y * y, xy = x * y, z2 = z * z;
+//			const RFLOAT z3 = z2 * z;
+//
+//			MAT_ELEM(matA, i, 0)  =      z;
+//			MAT_ELEM(matA, i, 1)  =      z2;
+//			MAT_ELEM(matA, i, 2)  =      z3;
+//
+//			MAT_ELEM(matA, i, 3)  = x  * z;
+//			MAT_ELEM(matA, i, 4)  = x  * z2;
+//			MAT_ELEM(matA, i, 5)  = x  * z3;
+//
+//			MAT_ELEM(matA, i, 6)  = x2 * z;
+//			MAT_ELEM(matA, i, 7)  = x2 * z2;
+//			MAT_ELEM(matA, i, 8)  = x2 * z3;
+//
+//			MAT_ELEM(matA, i, 9)  = y  * z;
+//			MAT_ELEM(matA, i, 10) = y  * z2;
+//			MAT_ELEM(matA, i, 11) = y  * z3;
+//
+//			MAT_ELEM(matA, i, 12) = y2 * z;
+//			MAT_ELEM(matA, i, 13) = y2 * z2;
+//			MAT_ELEM(matA, i, 14) = y2 * z3;
+//
+//			MAT_ELEM(matA, i, 15) = xy * z;
+//			MAT_ELEM(matA, i, 16) = xy * z2;
+//			MAT_ELEM(matA, i, 17) = xy * z3;
+//		}
+//
+//		const RFLOAT EPS = 1e-10;
+//		solve(matA, vecX, coeffX, EPS);
+//		solve(matA, vecY, coeffY, EPS);
+//
+//#ifdef DEBUG_OWN
+//		std::cout << "Polynomial fitting coefficients for X and Y:" << std::endl;
+//		for (int i = 0; i < n_params; i++) {
+//			std::cout << i << " " << coeffX(i) << " " << coeffY(i) << std::endl;
+//		}
+//#endif
+//
+//		ThirdOrderPolynomialModel *model = new ThirdOrderPolynomialModel();
+//		model->coeffX = coeffX; model->coeffY = coeffY;
+//		mic.model = model;
+//
+//#ifdef DEBUG_OWN
+//		std::cout << "Polynomial Fitting:" << std::endl;
+//#endif
+//		RFLOAT rms_x = 0, rms_y = 0;
+//	        for (int i = 0; i < n_obs; i++) {
+//			RFLOAT x_fitted, y_fitted;
+//			const RFLOAT x = patch_xs[i] / nx - 0.5;
+//			const RFLOAT y = patch_ys[i] / ny - 0.5;
+//			const RFLOAT z = patch_frames[i];
+//
+//			model->getShiftAt(z, x, y, x_fitted, y_fitted);
+//			rms_x += (patch_xshifts[i] - x_fitted) * (patch_xshifts[i] - x_fitted);
+//			rms_y += (patch_yshifts[i] - y_fitted) * (patch_yshifts[i] - y_fitted);
+//
+//			// These shifts and RMSDs are for reporting, so should be in the original pixel size
+//			mic.patchX.push_back(patch_xs[i] * prescaling);
+//			mic.patchY.push_back(patch_ys[i] * prescaling);
+//			mic.patchZ.push_back(z + first_frame_sum); // 1-indexed
+//			mic.localShiftX.push_back(patch_xshifts[i] * prescaling);
+//			mic.localShiftY.push_back(patch_yshifts[i] * prescaling);
+//			mic.localFitX.push_back(x_fitted * prescaling);
+//			mic.localFitY.push_back(y_fitted * prescaling);
+//
+//#ifdef DEBUG_OWN
+//			std::cout << " x = " << x << " y = " << y << " z = " << z;
+//			std::cout << ", Xobs = " << patch_xshifts[i] * prescaling << " Xfit = " << x_fitted * prescaling;
+//			std::cout << ", Yobs = " << patch_yshifts[i] * prescaling << " Yfit = " << y_fitted * prescaling << std::endl;
+//#endif
+//		}
+//		rms_x = std::sqrt(rms_x / n_obs) * prescaling; rms_y = std::sqrt(rms_y / n_obs) * prescaling;
+//		logfile << std::endl << "Polynomial fit RMSD: X = " << rms_x << " px Y = " << rms_y << " px" << std::endl;
+//		if (rms_x >= fit_rmsd_threshold || rms_y >= fit_rmsd_threshold) {
+//			logfile << "The polynomial motion model did not explain the observation very well." << std::endl;
+//			logfile << "Local correction is disabled for this micrograph." << std::endl;
+//			delete mic.model;
+//			mic.model = NULL;
+//
+//			// remove fitted trajectories
+//			for (int i = 0, ilim = mic.localFitX.size(); i < ilim; i++) {
+//				mic.localFitX[i] = 0;
+//				mic.localFitY[i] = 0;
+//			}
+//		}
+//		RCTOC(TIMING_FIT_POLYNOMIAL);
+//	} else { // !do_local
+//		mic.model = NULL;
+//	}
+//
+//skip_fitting:
+//	if (!do_dose_weighting || save_noDW) {
+//		Iref().initZeros(Iframes[0]());
+//
+//		RCTIC(TIMING_REAL_SPACE_INTERPOLATION);
+//		logfile << "Summing frames before dose weighting: ";
+//		realSpaceInterpolation(Iref, Iframes, mic.model, logfile);
+//		logfile << " done" << std::endl;
+//		RCTOC(TIMING_REAL_SPACE_INTERPOLATION);
+//
+//		// Apply binning
+//		RCTIC(TIMING_BINNING);
+//		if (!early_binning && bin_factor != 1) {
+//			binNonSquareImage(Iref, bin_factor);
+//		}
+//		RCTOC(TIMING_BINNING);
+//
+//		// Final output
+//                Iref.setSamplingRateInHeader(output_angpix, output_angpix);
+//		Iref.write(!do_dose_weighting ? fn_avg : fn_avg_noDW);
+//		logfile << "Written aligned but non-dose weighted sum to " << (!do_dose_weighting ? fn_avg : fn_avg_noDW) << std::endl;
+//	}
+//
+//	// Dose weighting
+//	if (do_dose_weighting) {
+//		RCTIC(TIMING_DOSE_WEIGHTING);
+//		if (std::abs(voltage - 300) > 2 && std::abs(voltage - 200) > 2 && std::abs(voltage - 100) > 2) {
+//			REPORT_ERROR("Sorry, dose weighting is supported only for 300, 200 or 100 kV");
+//		}
+//
+//		std::vector <RFLOAT> doses(n_frames);
+//		for (int iframe = 0; iframe < n_frames; iframe++) {
+//			// dose AFTER each frame.
+//			doses[iframe] = pre_exposure + dose_per_frame * (frames[iframe] + 1);
+//			if (std::abs(voltage - 200) <= 2) {
+//				doses[iframe] /= 0.8; // 200 kV electron is more damaging.
+//			} else if (std::abs(voltage - 100) <= 2) {
+//				doses[iframe] /= 0.64; // 100 kV electron is much more damaging.
+//			}
+//		}
+//
+//		RCTIC(TIMING_DW_WEIGHT);
+//		doseWeighting(Fframes, doses, angpix * prescaling);
+//		RCTOC(TIMING_DW_WEIGHT);
+//
+//		// Update real space images
+//		RCTIC(TIMING_DW_IFFT);
+//		#pragma omp parallel for num_threads(n_threads)
+//		for (int iframe = 0; iframe < n_frames; iframe++) {
+//			NewFFT::inverseFourierTransform(Fframes[iframe], Iframes[iframe]());
+//		}
+//		RCTOC(TIMING_DW_IFFT);
+//		RCTOC(TIMING_DOSE_WEIGHTING);
+//
+//		Iref().initZeros(Iframes[0]());
+//		RCTIC(TIMING_REAL_SPACE_INTERPOLATION);
+//		logfile << "Summing frames after dose weighting: ";
+//		realSpaceInterpolation(Iref, Iframes, mic.model, logfile);
+//		logfile << " done" << std::endl;
+//		RCTOC(TIMING_REAL_SPACE_INTERPOLATION);
+//
+//		// Apply binning
+//		RCTIC(TIMING_BINNING);
+//		if (!early_binning && bin_factor != 1) {
+//			binNonSquareImage(Iref, bin_factor);
+//		}
+//		RCTOC(TIMING_BINNING);
+//
+//		// Final output
+//                Iref.setSamplingRateInHeader(output_angpix, output_angpix);
+//		Iref.write(fn_avg);
+//		logfile << "Written aligned and dose-weighted sum to " << fn_avg << std::endl;
+//	}
 
 	// Set the start frame for the local motion model.
 	mic.first_frame = frames[0] + 1; // NOTE that this is 1-indexed.
