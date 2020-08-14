@@ -1964,9 +1964,6 @@ bool MotioncorrRunner::test(Micrograph &mic){
     }
 
     // FFT
-=======
-
->>>>>>> d85489f642ff6b606ba075f9c4c9fd24a1e32497
     RCTIC(TIMING_GLOBAL_FFT);
 #pragma omp parallel for num_threads(n_threads)
     for (int iframe = 0; iframe < n_frames; iframe++) {
@@ -1982,7 +1979,7 @@ bool MotioncorrRunner::test(Micrograph &mic){
     }
     RCTOC(TIMING_GLOBAL_FFT);
 
-<<<<<<< HEAD
+
     RCTIC(TIMING_POWER_SPECTRUM);
     // Write power spectrum for CTF estimation
     if (grouping_for_ps > 0)
