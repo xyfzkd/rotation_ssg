@@ -95,6 +95,27 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
 #endif
     }
     printf("Difference is %f\n", diff);
+
+#ifdef PRINTCOMP
+    printf("CPU: this is real image, stored in array(%d, %d, %d, %d)\n",
+            NSIZE(re1),
+            ZSIZE(re1),
+            YSIZE(re1),
+            XSIZE(re1));
+    for (int i=0; i < 16; i++){
+        printf("%3.1f \n", re1.data[i]);
+    }
+
+    printf("GPU: this is real image, stored in array(%d, %d, %d, %d)\n",
+           NSIZE(re2),
+           ZSIZE(re2),
+           YSIZE(re2),
+           XSIZE(re2));
+    for (int i=0; i < 16; i++){
+        printf("%3.1f \n", re2.data[i]);
+    }
+#endif
+
     return diff;
 }
 
