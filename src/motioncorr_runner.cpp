@@ -30,6 +30,7 @@
 #include "src/funcs.h"
 #include "src/renderEER.h"
 #include "src/acc/acc_alignPatch.h"
+#include "src/acc/cuda/cuda_alignPatch.cu"
 
 #define DEBUG
 #define TIMING
