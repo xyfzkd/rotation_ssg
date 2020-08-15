@@ -11,8 +11,9 @@
 #include <math.h>
 #include "device_launch_parameters.h"
 #include "time.h"
+#include "src/multidim_array.h"
 
-
+#define PRINTCOMP
 
 /********************/
 /* CUDA ERROR CHECK */
@@ -27,14 +28,53 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
     }
 }
 
+/**********************************************************************/
+/* function for simulate data for iFFT
+ * input of type MultidimArray<fComplex> *, simulate random
+ * data, and this function should be integrated into class MultidimArray
+ * there is macro RELION_ALIGNED_MALLOC, with data simulator initRandom or others.
+ * However, it seems as if it's designed for common type.
+ * I decide to fix the omission.
+ *
+ *         T* ptr=NULL;
+ *         long int n;
+ *         if (mode == "uniform")
+ *             FOR_ALL_DIRECT_ELEMENTS_IN_MULTIDIMARRAY_ptr(*this,n,ptr)
+ *             *ptr = static_cast< T >(rnd_unif(op1, op2));
+ *
+ *  what if T is fComplex?
+ */
+/***********************************************************************/
+
+void rand_comp(MultidimArray<fComplex>& s){
+    T* ptr=NULL;
+    long int n;
+    FOR_ALL_DIRECT_ELEMENTS_IN_MULTIDIMARRAY_ptr(*s,n,ptr)
+    (*ptr).real = static_cast< T >(rnd_unif(op1, op2));
+    (*ptr).imag = static_cast< T >(rnd_unif(op1, op2));
+
+#ifdef PRINTCOMP
+    for (int i=0; i < 16; i++){
+        printf("%3.1f %3.1f \n", *s.data[i].real,  *s.data[i].imag)
+    }
+#endif
+}
+
+/*******************************************************/
+/* CuFFT for 2D image c2r realization
+ * param@ src: MultidimArray<fComplex>, using array part
+ * param@ dest: MultidimArray<float>, using array part
+ */
+/*******************************************************/
 
 void CuFFT::inverseFourierTransform(
         MultidimArray<fComplex>& src,
         MultidimArray<float>& dest)
 {
-    /* http://www.orangeowlsolutions.com/archives/1173
+    /* http://www.orangeowlsolutions.com/archives/1173 arct
      * https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1
      * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
+     * https://www.beechwood.eu/using-cufft/ time
      * */
     if (!areSizesCompatible(dest, src))
     {
