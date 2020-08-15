@@ -490,7 +490,7 @@ NewFFT::FloatPlan::FloatPlan(
 	           N.push_back(w);
 	
 	const int ndim = N.size();
-    print_comp_image(complex);
+
 	pthread_mutex_lock(&fftw_plan_mutex_new);
 	
 	fftwf_plan planForward = fftwf_plan_dft_r2c(
@@ -504,7 +504,7 @@ NewFFT::FloatPlan::FloatPlan(
 			(fftwf_complex*) MULTIDIM_ARRAY(complex),
 			MULTIDIM_ARRAY(real),
 			flags);
-	
+    print_comp_image(complex);
 	pthread_mutex_unlock(&fftw_plan_mutex_new);
 	
 	if (planForward == NULL || planBackward == NULL)
