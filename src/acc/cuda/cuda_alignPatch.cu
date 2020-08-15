@@ -11,7 +11,7 @@
 #include <math.h>
 #include "device_launch_parameters.h"
 
-#define TEST
+#define GPU
 
 #define pi 3.1415926535
 #define LENGTH 100000 //signal sampling points
@@ -93,23 +93,26 @@ void CuFFT::inverseFourierTransform(
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
-    cufftHandle planIn;
-    cufftComplex *comp_data;
-    cufftReal *real_data;
+
+    cufftComplex *host_comp_data, *device_comp_data;
+    cufftReal    *host_real_data, *device_real_data;
 
 //    if (cudaGetLastError() != cudaSuccess){
 //        fprintf(stderr, "Cuda error: Failed to allocate\n");
 //        return;
 //    }
+    host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
+    host_real_data = MULTIDIM_ARRAY(dest);
 
-    cudaMalloc((void**)&real_data, sizeof(cufftComplex)*N[0]*N[1]);
-    cudaMalloc((void**)&comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
+    gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
+    gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
 
 
-    cudaMemcpy(comp_data, (cufftComplex*) MULTIDIM_ARRAY(src2), sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+    cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
     printf("nihoa\n");
-    cudaDeviceSynchronize();//wait to be done
-    cudaMemcpy(real_data, MULTIDIM_ARRAY(dest), sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyHostToDevice);
+
+    cufftHandle planIn;
+
 
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
@@ -120,11 +123,12 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
 
-    cufftExecC2R(planIn, comp_data, real_data);
+    cufftExecC2R(planIn, device_comp_data, device_real_data);
 
-    cudaMemcpy(MULTIDIM_ARRAY(dest),real_data, sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyDeviceToHost);
+    cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
 
-    cudaFree(comp_data);
-    cudaFree(real_data);
+    cufftDestroy(planIn);
+    gpuErrchk(cudaFree(device_comp_data));
+    gpuErrchk(cudaFree(device_real_data));
 #endif
 }
