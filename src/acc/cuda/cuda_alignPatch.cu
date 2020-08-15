@@ -37,50 +37,10 @@ void CuFFT::inverseFourierTransform(
         MultidimArray<fComplex>& src,
         MultidimArray<float>& dest)
 {
-#ifdef TEST
-    // --- Host side input data allocation and initialization
-    cufftReal *hostInputData = (cufftReal*)malloc(DATASIZE*BATCH*sizeof(cufftReal));
-    for (int i=0; i<BATCH; i++)
-        for (int j=0; j<DATASIZE; j++) hostInputData[i*DATASIZE + j] = (cufftReal)(i + 1);
-
-    // --- Device side input data allocation and initialization
-    cufftReal *deviceInputData; gpuErrchk(cudaMalloc((void**)&deviceInputData, DATASIZE * BATCH * sizeof(cufftReal)));
-    cudaMemcpy(deviceInputData, hostInputData, DATASIZE * BATCH * sizeof(cufftReal), cudaMemcpyHostToDevice);
-
-    // --- Host side output data allocation
-    cufftComplex *hostOutputData = (cufftComplex*)malloc((DATASIZE / 2 + 1) * BATCH * sizeof(cufftComplex));
-
-    // --- Device side output data allocation
-    cufftComplex *deviceOutputData; gpuErrchk(cudaMalloc((void**)&deviceOutputData, (DATASIZE / 2 + 1) * BATCH * sizeof(cufftComplex)));
-
-    // --- Batched 1D FFTs
-    cufftHandle handle;
-    int rank = 1;                           // --- 1D FFTs
-    int n[] = { DATASIZE };                 // --- Size of the Fourier transform
-    int istride = 1, ostride = 1;           // --- Distance between two successive input/output elements
-    int idist = DATASIZE, odist = (DATASIZE / 2 + 1); // --- Distance between batches
-    int inembed[] = { 0 };                  // --- Input size with pitch (ignored for 1D transforms)
-    int onembed[] = { 0 };                  // --- Output size with pitch (ignored for 1D transforms)
-    int batch = BATCH;                      // --- Number of batched executions
-    cufftPlanMany(&handle, rank, n,
-                  inembed, istride, idist,
-                  onembed, ostride, odist, CUFFT_R2C, batch);
-
-    //cufftPlan1d(&handle, DATASIZE, CUFFT_R2C, BATCH);
-    cufftExecR2C(handle,  deviceInputData, deviceOutputData);
-
-    // --- Device->Host copy of the results
-    gpuErrchk(cudaMemcpy(hostOutputData, deviceOutputData, (DATASIZE / 2 + 1) * BATCH * sizeof(cufftComplex), cudaMemcpyDeviceToHost));
-
-    for (int i=0; i<BATCH; i++)
-        for (int j=0; j<(DATASIZE / 2 + 1); j++)
-            printf("%i %i %f %fn", i, j, hostOutputData[i*(DATASIZE / 2 + 1) + j].x, hostOutputData[i*(DATASIZE / 2 + 1) + j].y);
-
-    cufftDestroy(handle);
-    gpuErrchk(cudaFree(deviceOutputData));
-    gpuErrchk(cudaFree(deviceInputData));
-#endif
-#ifdef GPU
+    /* http://www.orangeowlsolutions.com/archives/1173
+     * https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1
+     * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
+     * */
     if (!areSizesCompatible(dest, src))
     {
         resizeRealToMatch(dest, src);
@@ -92,15 +52,19 @@ void CuFFT::inverseFourierTransform(
     if (dest.zdim > 1) N.push_back(dest.zdim);
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
-    /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
+
+    float elapsedTime = 0;
+    cudaEvent_t start,stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start,0);
 
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
 
-//    if (cudaGetLastError() != cudaSuccess){
-//        fprintf(stderr, "Cuda error: Failed to allocate\n");
-//        return;
-//    }
+    /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
+     * Are cufftComplex and fftwf_complex interchangable? yes!
+     */
     host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
     host_real_data = MULTIDIM_ARRAY(dest);
 
@@ -109,7 +73,6 @@ void CuFFT::inverseFourierTransform(
 
 
     cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
-    printf("nihoa\n");
 
     cufftHandle planIn;
 
@@ -117,11 +80,6 @@ void CuFFT::inverseFourierTransform(
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
 
-    /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
-     * Are cufftComplex and fftwf_complex interchangable? yes!
-     */
-
-    /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
 
     cufftExecC2R(planIn, device_comp_data, device_real_data);
 
@@ -130,5 +88,10 @@ void CuFFT::inverseFourierTransform(
     cufftDestroy(planIn);
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
-#endif
+
+    //GET CALCULATION TIME
+    cudaEventRecord(stop,0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&elapsedTime,start,stop);
+    printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
 }
