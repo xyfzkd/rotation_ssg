@@ -55,7 +55,7 @@ void rand_comp(MultidimArray<fComplex>& s){
 
 #ifdef PRINTCOMP
     for (int i=0; i < 16; i++){
-        printf("%3.1f %3.1f \n", s.data[i].real,  s.data[i].imag)
+        printf("%3.1f %3.1f \n", s.data[i].real,  s.data[i].imag);
     }
 #endif
 }
