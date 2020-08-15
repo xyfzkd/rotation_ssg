@@ -1691,7 +1691,7 @@ void MotioncorrRunner::interpolateShifts(std::vector<int> &group_start, std::vec
 	}
 }
 
-bool MotioncorrRunner::test(Micrograph &mic){
+bool MotioncorrRunner::test(){
 #define TIME
     Image<float> Iccs;
     MultidimArray<fComplex> Fccs;
