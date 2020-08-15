@@ -72,7 +72,7 @@ void rand_comp(MultidimArray<fComplex>& s){
 /***********************************************************************/
 
 #define DIFF_ptr(re1,re2,n,ptr1,ptr2) \
-    for ((n)=0, (ptr1)=(re1).data, (ptr2)=(re2).data; (n)<NZYXSIZE(re1); ++(n), ++(ptr1), ++(ptr1))
+    for ((n)=0, (ptr1)=(re1).data, (ptr2)=(re2).data; (n)<NZYXSIZE(re1); ++(n), ++(ptr1), ++(ptr2))
 
 
 float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
