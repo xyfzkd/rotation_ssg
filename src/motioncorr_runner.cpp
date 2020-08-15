@@ -1715,6 +1715,8 @@ bool MotioncorrRunner::test(){
     Fccs.reshape(972, 487);
     Iccs2().reshape(972, 972);
 
+    rand_comp(Fccs);
+
     if(do_gpu){
 
         RCTIC(TIMING_GPU_IFFT);
