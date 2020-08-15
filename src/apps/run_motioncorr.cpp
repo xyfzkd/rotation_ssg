@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
 	{
 		prm.read(argc, argv);
 		prm.initialise();
-		prm.test();
+		prm.run();
+//		prm.test();
 	}
 	catch (RelionError XE)
 	{
