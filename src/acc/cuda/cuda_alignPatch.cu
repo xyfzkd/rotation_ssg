@@ -11,7 +11,7 @@
 #include <math.h>
 #include "device_launch_parameters.h"
 
-#define TEST
+#define GPU
 
 #define pi 3.1415926535
 #define LENGTH 100000 //signal sampling points
