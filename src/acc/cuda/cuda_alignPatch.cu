@@ -13,7 +13,7 @@
 #include "time.h"
 #include "src/multidim_array.h"
 
-//#define PRINTCOMP
+#define PRINTCOMP
 
 /********************/
 /* CUDA ERROR CHECK */
