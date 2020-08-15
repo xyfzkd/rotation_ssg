@@ -78,7 +78,7 @@ void rand_comp(MultidimArray<fComplex>& s){
 float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
     if(NSIZE(re1)!=NSIZE(re2) || \
        ZSIZE(re1)!=ZSIZE(re2) || \
-       YSIZE(re1)!=ZSIZE(re2) || \
+       YSIZE(re1)!=YSIZE(re2) || \
        XSIZE(re1)!=XSIZE(re2)){
         printf("Unequal dimensions:\n  Array1: (%d, %d, %d, %d)\n  Array1: (%d, %d, %d, %d)\n",
                 NSIZE(re1), ZSIZE(re1), YSIZE(re1), XSIZE(re1),
