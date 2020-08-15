@@ -10,14 +10,9 @@
 #include <string.h>
 #include <math.h>
 #include "device_launch_parameters.h"
+#include "time.h"
 
-#define GPU
 
-#define pi 3.1415926535
-#define LENGTH 100000 //signal sampling points
-
-#define DATASIZE 8
-#define BATCH 2
 
 /********************/
 /* CUDA ERROR CHECK */
