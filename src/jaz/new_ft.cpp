@@ -332,6 +332,8 @@ void NewFFT::_inverseFourierTransform(
 	fftwf_complex* in = (fftwf_complex*) MULTIDIM_ARRAY(src);
 	
 	fftwf_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));
+
+    print_real_image(dest);
 	
 	if (normalization == Both)
 	{

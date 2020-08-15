@@ -203,3 +203,26 @@ void CuFFT::inverseFourierTransform(
     cudaEventElapsedTime(&elapsedTime,start,stop);
     printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
 }
+
+//void CuFFT::inverseFourierTransformcpu(
+//        MultidimArray<fComplex>& src,
+//        MultidimArray<float>& dest)
+//{
+//    /* http://www.orangeowlsolutions.com/archives/1173 arct
+//     * https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1
+//     * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
+//     * https://www.beechwood.eu/using-cufft/ time
+//     * */
+//    if (!areSizesCompatible(dest, src))
+//    {
+//        resizeRealToMatch(dest, src);
+//    }
+//
+//    MultidimArray<fComplex> src2 = src;
+//
+//    std::vector<int> N(0);
+//    if (dest.zdim > 1) N.push_back(dest.zdim);
+//    if (dest.ydim > 1) N.push_back(dest.ydim);
+//    N.push_back(dest.xdim);
+//
+//
