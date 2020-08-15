@@ -58,14 +58,14 @@ void rand_comp(MultidimArray<fComplex>& s){
 //#endif
 }
 
-void print_comp_image(fComplex>& s){
+void print_comp_image(MultidimArray<fComplex>& s){
     printf("this is comp image, stored in array(%d, %d, %d, %d)\n", NSIZE(s), ZSIZE(s), YSIZE(s), XSIZE(s));
     for (int i=0; i < 16; i++){
         printf("%3.1f %3.1f \n", s.data[i].real,  s.data[i].imag);
     }
 }
 
-void print_real_image(fComplex>& s){
+void print_real_image(MultidimArray<float>& s){
     printf("this is real image, stored in array(%d, %d, %d, %d)\n", NSIZE(s), ZSIZE(s), YSIZE(s), XSIZE(s));
     for (int i=0; i < 16; i++){
         printf("%3.1f \n", s.data[i]);

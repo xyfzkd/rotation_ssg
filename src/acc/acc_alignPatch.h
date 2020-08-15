@@ -33,6 +33,6 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2);
 
 void rand_comp(MultidimArray<fComplex>& s);
 
-void print_comp_image(fComplex>& s);
+void print_comp_image(MultidimArray<fComplex>& s);
 
-void print_real_image(fComplex>& s);
+void print_real_image(MultidimArray<float>& s);
