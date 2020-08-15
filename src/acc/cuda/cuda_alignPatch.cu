@@ -3,12 +3,14 @@
 #include "cuda_runtime.h"
 //#include "src/acc/cuda/cuda_alignPatch.h"
 #include "src/acc/acc_alignPatch.h"
+#define CPU
 
 
 void CuFFT::inverseFourierTransform(
         MultidimArray<fComplex>& src,
         MultidimArray<float>& dest)
 {
+
     if (!areSizesCompatible(dest, src))
     {
         resizeRealToMatch(dest, src);
@@ -20,7 +22,7 @@ void CuFFT::inverseFourierTransform(
     if (dest.zdim > 1) N.push_back(dest.zdim);
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
-
+#ifdef GPU
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
     cufftHandle planIn;
     cufftComplex *comp_data;
@@ -54,4 +56,11 @@ void CuFFT::inverseFourierTransform(
 
     cudaFree(comp_data);
     cudaFree(real_data);
+#endif
+#ifdef CPU
+    FloatPlan p(dest, src2);
+    fftw_complex* in = (fftw_complex*) MULTIDIM_ARRAY(src2);
+    
+    fftw_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));
+#endif
 }
