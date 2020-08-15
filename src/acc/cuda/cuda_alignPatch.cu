@@ -11,13 +11,14 @@
 #include <math.h>
 #include "device_launch_parameters.h"
 
-#define GPU
+#define TEST
 
 #define pi 3.1415926535
 #define LENGTH 100000 //signal sampling points
 
 #define DATASIZE 8
 #define BATCH 2
+
 /********************/
 /* CUDA ERROR CHECK */
 /********************/
@@ -78,8 +79,6 @@ void CuFFT::inverseFourierTransform(
     cufftDestroy(handle);
     gpuErrchk(cudaFree(deviceOutputData));
     gpuErrchk(cudaFree(deviceInputData));
-
-}
 #endif
 #ifdef GPU
     if (!areSizesCompatible(dest, src))
@@ -94,8 +93,8 @@ void CuFFT::inverseFourierTransform(
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
-    cufftHandle plan;
-    cufftComplex *host_data;
+    cufftHandle planIn;
+    cufftComplex *comp_data;
     cufftReal *real_data;
 
 //    if (cudaGetLastError() != cudaSuccess){
@@ -103,14 +102,14 @@ void CuFFT::inverseFourierTransform(
 //        return;
 //    }
 
-//    cudaMalloc((void**)&real_data, sizeof(cufftComplex)*N[0]*N[1]);
+    cudaMalloc((void**)&real_data, sizeof(cufftComplex)*N[0]*N[1]);
     cudaMalloc((void**)&comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1));
 
 
     cudaMemcpy(comp_data, (cufftComplex*) MULTIDIM_ARRAY(src2), sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
     printf("nihoa\n");
-//    cudaDeviceSynchronize();//wait to be done
-//    cudaMemcpy(real_data, (cufftReal*) MULTIDIM_ARRAY(dest), sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyHostToDevice);
+    cudaDeviceSynchronize();//wait to be done
+    cudaMemcpy(real_data, MULTIDIM_ARRAY(dest), sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyHostToDevice);
 
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
@@ -121,9 +120,9 @@ void CuFFT::inverseFourierTransform(
 
     /* https://docs.nvidia.com/cuda/cufft/index.html 3.9.3 */
 
-    cufftExecC2R(planIn, comp_data, comp_data);
+    cufftExecC2R(planIn, comp_data, real_data);
 
-    cudaMemcpy(MULTIDIM_ARRAY(dest),comp_data, sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyDeviceToHost);
+    cudaMemcpy(MULTIDIM_ARRAY(dest),real_data, sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyDeviceToHost);
 
     cudaFree(comp_data);
     cudaFree(real_data);
