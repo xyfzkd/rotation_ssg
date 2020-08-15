@@ -31,6 +31,7 @@
 #include "src/renderEER.h"
 #include "src/acc/acc_alignPatch.h"
 
+#define DEBUG
 #define TIMING
 #ifdef TIMING
 	#define RCTIC(label) (timer.tic(label))
