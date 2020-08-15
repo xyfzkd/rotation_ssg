@@ -29,7 +29,7 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 }
 
 /**********************************************************************/
-/* function for simulate data for iFFT
+/* function for simulating data for iFFT
  * input of type MultidimArray<fComplex> *, simulate random
  * data, and this function should be integrated into class MultidimArray
  * there is macro RELION_ALIGNED_MALLOC, with data simulator initRandom or others.
@@ -61,6 +61,37 @@ void rand_comp(MultidimArray<fComplex>& s){
         printf("%3.1f %3.1f \n", s.data[i].real,  s.data[i].imag);
     }
 #endif
+}
+
+/**********************************************************************/
+/* function for testing the resulting differences
+ *          sum( abs(re1-re2) / (abs(re1+re2)+eps) )
+ *
+ * macros for traversing the same size MultidimArray, similar to src/multidim_array.h:234
+ */
+/***********************************************************************/
+
+#define DIFF_ptr(re1,re2,n,ptr1,ptr2) \
+    for ((n)=0, (ptr1)=(re1).data, (ptr2)=(re2).data; (n)<NZYXSIZE(re1); ++(n), ++(ptr1), ++(ptr1))
+
+
+float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
+    if(NSIZE(re1)!=NSIZE(re2) || \
+       ZSIZE(re1)!=ZSIZE(re2) || \
+       YSIZE(re1)!=ZSIZE(re2) || \
+       XSIZE(re1)!=XISZE(re2)){
+        printf("Unequal dimensions:\n  Array1: (%d, %d, %d, %d)\n  Array1: (%d, %d, %d, %d)\n",
+                NSIZE(re1), ZSIZE(re1), YSIZE(re1), XSIZE(re1),
+                NSIZE(re2), ZSIZE(re2), YSIZE(re2), XSIZE(re2));
+        return 0;
+    }
+    float* ptr1=NULL, ptr2=NULL;
+    long int n;
+    float diff = 0, eps=1e-8;
+    DIFF_ptr(re1,re2,n,ptr1,ptr2){
+        diff += abs(*ptr1 - *ptr2) / (abs(*ptr1 + *ptr2) + eps);
+    }
+    printf("Difference is %f\n", diff);
 }
 
 /*******************************************************/
@@ -124,11 +155,14 @@ void CuFFT::inverseFourierTransform(
 
     cufftExecC2R(planIn, device_comp_data, device_real_data);
 
+
     cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
 
     cufftDestroy(planIn);
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
+
+    DIFF_ptr(host_real_data,host_real_datah);
 
     //GET CALCULATION TIME
     cudaEventRecord(stop,0);
