@@ -1692,6 +1692,33 @@ void MotioncorrRunner::interpolateShifts(std::vector<int> &group_start, std::vec
 }
 
 bool MotioncorrRunner::test(Micrograph &mic){
+#define TIME
+    Image<float> Iccs;
+    MultidimArray<fComplex> Fccs;
+    /*
+     std::cout << "Fccf X = " << ccf_nfx << " Y = " << ccf_nfy << std::endl;
+     
+     Fccf X = 487 Y = 972
+     
+     const int ccf_nfx = ccf_nx / 2 + 1, ccf_nfy = ccf_ny;
+     
+     Fref.reshape(ccf_nfy, ccf_nfx);
+
+     Iccs().reshape(ccf_ny, ccf_nx);
+     Fccs.reshape(Fref);
+     */
+    Iccs().reshape(972, 972);
+    Fccs.reshape(972, 487);
+    
+    if(do_gpu){
+        CuFFT::inverseFourierTransform(Fccs, Iccs());
+    } else
+        NewFFT::inverseFourierTransform(Fccs, Iccs());
+    
+    
+    
+    
+#ifdef TIME
     FileName fn_mic = mic.getMovieFilename();
     FileName fn_avg = getOutputFileNames(fn_mic);
     FileName fn_avg_noDW = fn_avg.withoutExtension() + "_noDW.mrc";
@@ -2086,6 +2113,7 @@ bool MotioncorrRunner::test(Micrograph &mic){
     RCTIC(TIMING_GLOBAL_ALIGNMENT);
     alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
     RCTOC(TIMING_GLOBAL_ALIGNMENT);
+#endif
 }
 
 
