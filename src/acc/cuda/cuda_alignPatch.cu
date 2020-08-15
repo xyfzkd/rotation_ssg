@@ -90,10 +90,11 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
     float diff = 0, eps=1e-8;
     DIFF_ptr(re1,re2,n,ptr1,ptr2){
         diff += abs(*ptr1 - *ptr2) / (abs(*ptr1 + *ptr2) + eps);
-#ifdef PRINTCOMP
+#ifdef PRINTDIFF
         printf("N: %d: difference is %f\n", n, diff);
 #endif
     }
+    printf("Difference is %f\n", diff);
     return diff;
 }
 
@@ -165,7 +166,7 @@ void CuFFT::inverseFourierTransform(
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
 
-    diff(dest,dest);
+//    diff(dest,dest);
 
     //GET CALCULATION TIME
     cudaEventRecord(stop,0);

@@ -1696,7 +1696,7 @@ void MotioncorrRunner::interpolateShifts(std::vector<int> &group_start, std::vec
 
 bool MotioncorrRunner::test(){
 #define TIME
-    Image<float> Iccs;
+    Image<float> Iccs,Iccs2;
     MultidimArray<fComplex> Fccs;
     /*
      std::cout << "Fccf X = " << ccf_nfx << " Y = " << ccf_nfy << std::endl;
@@ -1712,15 +1712,17 @@ bool MotioncorrRunner::test(){
      */
     Iccs().reshape(972, 972);
     Fccs.reshape(972, 487);
-    
+    Iccs2().reshape(972, 972);
+
     if(do_gpu){
 
         RCTIC(TIMING_GPU_IFFT);
         CuFFT::inverseFourierTransform(Fccs, Iccs());
         RCTIC(TIMING_GPU_IFFT);
         RCTIC(TIMING_CPU_IFFT);
-        NewFFT::inverseFourierTransform(Fccs, Iccs());
+        NewFFT::inverseFourierTransform(Fccs, Iccs2());
         RCTOC(TIMING_CPU_IFFT);
+        diff(Iccs(), Iccs2());
     } else{
         NewFFT::inverseFourierTransform(Fccs, Iccs());
         printf("run on cpu\n");
