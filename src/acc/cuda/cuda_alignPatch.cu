@@ -3,6 +3,15 @@
 #include "cuda_runtime.h"
 //#include "src/acc/cuda/cuda_alignPatch.h"
 #include "src/acc/acc_alignPatch.h"
+
+#include "new_ft.h"
+
+#include "src/macros.h"
+#include "src/fftw.h"
+#include "src/args.h"
+#include <string.h>
+#include <math.h>
+
 #define CPU
 
 
