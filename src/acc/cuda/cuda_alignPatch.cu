@@ -4,7 +4,7 @@
 //#include "src/acc/cuda/cuda_alignPatch.h"
 #include "src/acc/acc_alignPatch.h"
 
-#include "new_ft.h"
+#include "src/jaz/new_ft.h"
 
 #include "src/macros.h"
 #include "src/fftw.h"
