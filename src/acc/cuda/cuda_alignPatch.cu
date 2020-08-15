@@ -53,14 +53,23 @@ void rand_comp(MultidimArray<fComplex>& s){
         (*ptr).real = (float) (rnd_unif(0, 1));
         (*ptr).imag = (float) (rnd_unif(0, 1));
     }
+//#ifdef PRINTCOMP
+//    print_comp_image(s);
+//#endif
+}
 
-
-#ifdef PRINTCOMP
-    printf("this is image, stored in array(%d, %d, %d, %d)\n", NSIZE(s), ZSIZE(s), YSIZE(s), XSIZE(s));
+void print_comp_image(fComplex>& s){
+    printf("this is comp image, stored in array(%d, %d, %d, %d)\n", NSIZE(s), ZSIZE(s), YSIZE(s), XSIZE(s));
     for (int i=0; i < 16; i++){
         printf("%3.1f %3.1f \n", s.data[i].real,  s.data[i].imag);
     }
-#endif
+}
+
+void print_real_image(fComplex>& s){
+    printf("this is real image, stored in array(%d, %d, %d, %d)\n", NSIZE(s), ZSIZE(s), YSIZE(s), XSIZE(s));
+    for (int i=0; i < 16; i++){
+        printf("%3.1f \n", s.data[i]);
+    }
 }
 
 /**********************************************************************/
