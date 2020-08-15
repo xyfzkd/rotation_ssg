@@ -76,6 +76,6 @@ void CuFFT::inverseFourierTransform(
     FFTW_UNALIGNED);
     fftw_complex* in = (fftw_complex*) MULTIDIM_ARRAY(src2);
     
-    fftw_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));
+    fftw_execute_dft_c2r(planForward, in, MULTIDIM_ARRAY(dest));
 #endif
 }
