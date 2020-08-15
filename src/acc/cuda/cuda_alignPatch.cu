@@ -79,13 +79,13 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
     if(NSIZE(re1)!=NSIZE(re2) || \
        ZSIZE(re1)!=ZSIZE(re2) || \
        YSIZE(re1)!=ZSIZE(re2) || \
-       XSIZE(re1)!=XISZE(re2)){
+       XSIZE(re1)!=XSIZE(re2)){
         printf("Unequal dimensions:\n  Array1: (%d, %d, %d, %d)\n  Array1: (%d, %d, %d, %d)\n",
                 NSIZE(re1), ZSIZE(re1), YSIZE(re1), XSIZE(re1),
                 NSIZE(re2), ZSIZE(re2), YSIZE(re2), XSIZE(re2));
         return 0;
     }
-    float* ptr1=NULL, ptr2=NULL;
+    float *ptr1=NULL, *ptr2=NULL;
     long int n;
     float diff = 0, eps=1e-8;
     DIFF_ptr(re1,re2,n,ptr1,ptr2){
@@ -162,7 +162,7 @@ void CuFFT::inverseFourierTransform(
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
 
-    diff(host_real_data,host_real_datah);
+    diff(host_real_data,host_real_data);
 
     //GET CALCULATION TIME
     cudaEventRecord(stop,0);
