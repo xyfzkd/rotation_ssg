@@ -88,6 +88,9 @@ void CuFFT::inverseFourierTransform(
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
 
+    rand_comp(src2);
+
+
     float elapsedTime = 0;
     cudaEvent_t start,stop;
     cudaEventCreate(&start);
