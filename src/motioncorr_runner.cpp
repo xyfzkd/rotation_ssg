@@ -1714,12 +1714,13 @@ bool MotioncorrRunner::test(){
     Fccs.reshape(972, 487);
     
     if(do_gpu){
-        RCTIC(TIMING_CPU_IFFT);
-        NewFFT::inverseFourierTransform(Fccs, Iccs());
-        RCTOC(TIMING_CPU_IFFT);
+
         RCTIC(TIMING_GPU_IFFT);
         CuFFT::inverseFourierTransform(Fccs, Iccs());
         RCTIC(TIMING_GPU_IFFT);
+        RCTIC(TIMING_CPU_IFFT);
+        NewFFT::inverseFourierTransform(Fccs, Iccs());
+        RCTOC(TIMING_CPU_IFFT);
     } else{
         NewFFT::inverseFourierTransform(Fccs, Iccs());
         printf("run on cpu\n");
