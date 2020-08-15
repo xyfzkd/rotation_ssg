@@ -1712,8 +1712,10 @@ bool MotioncorrRunner::test(){
     
     if(do_gpu){
         CuFFT::inverseFourierTransform(Fccs, Iccs());
-    } else
+    } else{
         NewFFT::inverseFourierTransform(Fccs, Iccs());
+        printf("run on cpu\n");
+    }
 
 }
 
