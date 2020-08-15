@@ -66,9 +66,12 @@
 	int TIMING_DOSE_WEIGHTING = timer.setNew("dose weighting");
 	int TIMING_DW_WEIGHT = timer.setNew("dw - calc weight");
 	int TIMING_DW_IFFT = timer.setNew("dw - iFFT");
+
 	int TIMING_REAL_SPACE_INTERPOLATION = timer.setNew("real space interpolation");
 	int TIMING_BINNING = timer.setNew("binning");
 //	int TIMING_ = timer.setNew("");
+    int TIMING_CPU_IFFT = timer.setNew("CPU - iFFT");
+    int TIMING_GPU_IFFT = timer.setNew("GPU - iFFT");
 
 #else
 	#define RCTIC(label)
@@ -1711,7 +1714,12 @@ bool MotioncorrRunner::test(){
     Fccs.reshape(972, 487);
     
     if(do_gpu){
+        RCTIC(TIMING_CPU_IFFT);
+        NewFFT::inverseFourierTransform(Fccs, Iccs());
+        RCTOC(TIMING_CPU_IFFT);
+        RCTIC(TIMING_GPU_IFFT);
         CuFFT::inverseFourierTransform(Fccs, Iccs());
+        RCTIC(TIMING_GPU_IFFT);
     } else{
         NewFFT::inverseFourierTransform(Fccs, Iccs());
         printf("run on cpu\n");
