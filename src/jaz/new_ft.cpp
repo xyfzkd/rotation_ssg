@@ -499,7 +499,7 @@ NewFFT::FloatPlan::FloatPlan(
             MULTIDIM_ARRAY(real),
             flags);
 
-    print_comp_image(complex);
+    print_real_image(real);
     fftwf_plan planForward = fftwf_plan_dft_r2c(
             ndim, &N[0],
             MULTIDIM_ARRAY(real),
