@@ -1724,7 +1724,9 @@ bool MotioncorrRunner::test(){
         NewFFT::inverseFourierTransform(Fccs, Iccs());
         printf("run on cpu\n");
     }
-
+#ifdef TIMING
+    timer.printTimes(false);
+#endif
 }
 
 
