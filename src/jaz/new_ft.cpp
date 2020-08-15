@@ -237,7 +237,7 @@ void NewFFT::inverseFourierTransform(
 
 		FloatPlan p(dest, src2);
 
-		_inverseFourierTransform(src2, dest, p, normalization);
+		_inverseFourierTransform(src, dest, p, normalization);
 	}
 	else
 	{
