@@ -162,7 +162,7 @@ void CuFFT::inverseFourierTransform(
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
 
-    DIFF_ptr(host_real_data,host_real_datah);
+    diff(host_real_data,host_real_datah);
 
     //GET CALCULATION TIME
     cudaEventRecord(stop,0);
