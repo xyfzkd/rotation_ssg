@@ -234,9 +234,9 @@ void NewFFT::inverseFourierTransform(
 	if (preserveInput)
 	{
 		MultidimArray<fComplex> src2 = src;
-        print_comp_image(src2);
+
 		FloatPlan p(dest, src2);
-        print_comp_image(src2);
+
 		_inverseFourierTransform(src2, dest, p, normalization);
 	}
 	else
@@ -490,7 +490,7 @@ NewFFT::FloatPlan::FloatPlan(
 	           N.push_back(w);
 	
 	const int ndim = N.size();
-	
+    print_comp_image(complex);
 	pthread_mutex_lock(&fftw_plan_mutex_new);
 	
 	fftwf_plan planForward = fftwf_plan_dft_r2c(
