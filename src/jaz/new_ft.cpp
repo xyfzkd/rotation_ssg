@@ -493,17 +493,18 @@ NewFFT::FloatPlan::FloatPlan(
 
 	pthread_mutex_lock(&fftw_plan_mutex_new);
     print_comp_image(complex);
-	fftwf_plan planForward = fftwf_plan_dft_r2c(
-			ndim, &N[0],
-			MULTIDIM_ARRAY(real),
-			(fftwf_complex*) MULTIDIM_ARRAY(complex),
-			flags);
+    fftwf_plan planBackward = fftwf_plan_dft_c2r(
+            ndim, &N[0],
+            (fftwf_complex*) MULTIDIM_ARRAY(complex),
+            MULTIDIM_ARRAY(real),
+            flags);
+
     print_comp_image(complex);
-	fftwf_plan planBackward = fftwf_plan_dft_c2r(
-			ndim, &N[0],
-			(fftwf_complex*) MULTIDIM_ARRAY(complex),
-			MULTIDIM_ARRAY(real),
-			flags);
+    fftwf_plan planForward = fftwf_plan_dft_r2c(
+            ndim, &N[0],
+            MULTIDIM_ARRAY(real),
+            (fftwf_complex*) MULTIDIM_ARRAY(complex),
+            flags);
 
 	pthread_mutex_unlock(&fftw_plan_mutex_new);
 	
