@@ -16,47 +16,70 @@
 #define pi 3.1415926535
 #define LENGTH 100000 //signal sampling points
 
+#define DATASIZE 8
+#define BATCH 2
+/********************/
+/* CUDA ERROR CHECK */
+/********************/
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+    if (code != cudaSuccess)
+    {
+        fprintf(stderr,"GPUassert: %s %s %dn", cudaGetErrorString(code), file, line);
+        if (abort) exit(code);
+    }
+}
+
 
 void CuFFT::inverseFourierTransform(
         MultidimArray<fComplex>& src,
         MultidimArray<float>& dest)
 {
 #ifdef TEST
-    float Data[LENGTH] = { 1,2,3,4 };
-    float fs = 1000000.000;//sampling frequency
-    float f0 = 200000.00;// signal frequency
-    for (int i = 0; i < LENGTH; i++)
-    {
-        Data[i] = 1.35*cos(2 * pi*f0*i / fs);//signal gen,
-    }
+    // --- Host side input data allocation and initialization
+    cufftReal *hostInputData = (cufftReal*)malloc(DATASIZE*BATCH*sizeof(cufftReal));
+    for (int i=0; i<BATCH; i++)
+        for (int j=0; j<DATASIZE; j++) hostInputData[i*DATASIZE + j] = (cufftReal)(i + 1);
 
-    cufftComplex *CompData = (cufftComplex*)malloc(LENGTH * sizeof(cufftComplex));//allocate memory for the data in host
-    int i;
-    for (i = 0; i < LENGTH; i++)
-    {
-        CompData[i].x = Data[i];
-        CompData[i].y = 0;
-    }
+    // --- Device side input data allocation and initialization
+    cufftReal *deviceInputData; gpuErrchk(cudaMalloc((void**)&deviceInputData, DATASIZE * BATCH * sizeof(cufftReal)));
+    cudaMemcpy(deviceInputData, hostInputData, DATASIZE * BATCH * sizeof(cufftReal), cudaMemcpyHostToDevice);
 
-    cufftComplex *d_fftData;
-    cudaMalloc((void**)&d_fftData, LENGTH * sizeof(cufftComplex));// allocate memory for the data in device
-    cudaMemcpy(d_fftData, CompData, LENGTH * sizeof(cufftComplex), cudaMemcpyHostToDevice);// copy data from host to device
+    // --- Host side output data allocation
+    cufftComplex *hostOutputData = (cufftComplex*)malloc((DATASIZE / 2 + 1) * BATCH * sizeof(cufftComplex));
 
-    cufftHandle plan;// cuda library function handle
-    cufftPlan1d(&plan, LENGTH, CUFFT_C2C, 1);//declaration
-    cufftExecC2C(plan, (cufftComplex*)d_fftData, (cufftComplex*)d_fftData, CUFFT_FORWARD);//execute
-    cudaDeviceSynchronize();//wait to be done
-    cudaMemcpy(CompData, d_fftData, LENGTH * sizeof(cufftComplex), cudaMemcpyDeviceToHost);// copy the result from device to host
+    // --- Device side output data allocation
+    cufftComplex *deviceOutputData; gpuErrchk(cudaMalloc((void**)&deviceOutputData, (DATASIZE / 2 + 1) * BATCH * sizeof(cufftComplex)));
 
-    for (i = 0; i < LENGTH / 2; i++)
-    {
-        printf("i=%d\tf= %6.1fHz\tRealAmp=%3.1f\t", i, fs*i / LENGTH, CompData[i].x*2.0 / LENGTH);
-        printf("ImagAmp=+%3.1fi", CompData[i].y*2.0 / LENGTH);
-        printf("\n");
-    }
-    cufftDestroy(plan);
-    free(CompData);
-    cudaFree(d_fftData);
+    // --- Batched 1D FFTs
+    cufftHandle handle;
+    int rank = 1;                           // --- 1D FFTs
+    int n[] = { DATASIZE };                 // --- Size of the Fourier transform
+    int istride = 1, ostride = 1;           // --- Distance between two successive input/output elements
+    int idist = DATASIZE, odist = (DATASIZE / 2 + 1); // --- Distance between batches
+    int inembed[] = { 0 };                  // --- Input size with pitch (ignored for 1D transforms)
+    int onembed[] = { 0 };                  // --- Output size with pitch (ignored for 1D transforms)
+    int batch = BATCH;                      // --- Number of batched executions
+    cufftPlanMany(&handle, rank, n,
+                  inembed, istride, idist,
+                  onembed, ostride, odist, CUFFT_R2C, batch);
+
+    //cufftPlan1d(&handle, DATASIZE, CUFFT_R2C, BATCH);
+    cufftExecR2C(handle,  deviceInputData, deviceOutputData);
+
+    // --- Device->Host copy of the results
+    gpuErrchk(cudaMemcpy(hostOutputData, deviceOutputData, (DATASIZE / 2 + 1) * BATCH * sizeof(cufftComplex), cudaMemcpyDeviceToHost));
+
+    for (int i=0; i<BATCH; i++)
+        for (int j=0; j<(DATASIZE / 2 + 1); j++)
+            printf("%i %i %f %fn", i, j, hostOutputData[i*(DATASIZE / 2 + 1) + j].x, hostOutputData[i*(DATASIZE / 2 + 1) + j].y);
+
+    cufftDestroy(handle);
+    gpuErrchk(cudaFree(deviceOutputData));
+    gpuErrchk(cudaFree(deviceInputData));
+
+}
 #endif
 #ifdef GPU
     if (!areSizesCompatible(dest, src))
@@ -71,8 +94,8 @@ void CuFFT::inverseFourierTransform(
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
-    cufftHandle planIn;
-    cufftComplex *comp_data;
+    cufftHandle plan;
+    cufftComplex *host_data;
     cufftReal *real_data;
 
 //    if (cudaGetLastError() != cudaSuccess){
