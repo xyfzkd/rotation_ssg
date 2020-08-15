@@ -87,7 +87,7 @@ void CuFFT::inverseFourierTransform(
     cudaMemcpy(comp_data, (cufftComplex*) MULTIDIM_ARRAY(src2), sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
     printf("nihoa\n");
     cudaDeviceSynchronize();//wait to be done
-    cudaMemcpy(real_data, MULTIDIM_ARRAY(dest), sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyHostToDevice);
+    cudaMemcpy(real_data, (cufftReal*) MULTIDIM_ARRAY(dest), sizeof(cufftComplex)*N[0]*N[1], cudaMemcpyHostToDevice);
 
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
