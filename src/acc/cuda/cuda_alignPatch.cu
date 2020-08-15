@@ -5,13 +5,6 @@
 #include "src/acc/acc_alignPatch.h"
 
 
-#include "src/macros.h"
-#include "src/fftw.h"
-#include "src/args.h"
-#include <string.h>
-#include <math.h>
-
-#define CPU
 
 
 void CuFFT::inverseFourierTransform(
@@ -30,7 +23,6 @@ void CuFFT::inverseFourierTransform(
     if (dest.zdim > 1) N.push_back(dest.zdim);
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
-#ifdef GPU
     /* https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1 */
     cufftHandle planIn;
     cufftComplex *comp_data;
@@ -64,18 +56,5 @@ void CuFFT::inverseFourierTransform(
 
     cudaFree(comp_data);
     cudaFree(real_data);
-#endif
-#ifdef CPU
-    MultidimArray<float> realDummy(N[0],N[1]);
-    MultidimArray<fComplex> complexDummy(N[0],N[1]/2);
 
-    fftwf_plan planForward = fftwf_plan_dft_r2c(
-    2, &N[0],
-    MULTIDIM_ARRAY(realDummy),
-    (fftwf_complex*) MULTIDIM_ARRAY(complexDummy),
-    FFTW_UNALIGNED);
-    fftw_complex* in = (fftw_complex*) MULTIDIM_ARRAY(src2);
-    
-    fftw_execute_dft_c2r(planForward, in, MULTIDIM_ARRAY(dest));
-#endif
 }
