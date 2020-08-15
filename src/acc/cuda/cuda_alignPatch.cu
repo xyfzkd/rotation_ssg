@@ -14,7 +14,7 @@
 #define TEST
 
 #define pi 3.1415926535
-#define LENGTH 100 //signal sampling points
+#define LENGTH 100000 //signal sampling points
 
 
 void CuFFT::inverseFourierTransform(
