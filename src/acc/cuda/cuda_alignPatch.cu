@@ -4,7 +4,6 @@
 //#include "src/acc/cuda/cuda_alignPatch.h"
 #include "src/acc/acc_alignPatch.h"
 
-#include "src/jaz/new_ft.h"
 
 #include "src/macros.h"
 #include "src/fftw.h"
@@ -67,7 +66,14 @@ void CuFFT::inverseFourierTransform(
     cudaFree(real_data);
 #endif
 #ifdef CPU
-    FloatPlan p(dest, src2);
+    MultidimArray<float> realDummy(N[0],N[1]);
+    MultidimArray<fComplex> complexDummy(N[0],N[1]/2);
+
+    fftwf_plan planForward = fftwf_plan_dft_r2c(
+    2, &N[0],
+    MULTIDIM_ARRAY(realDummy),
+    (fftwf_complex*) MULTIDIM_ARRAY(complexDummy),
+    FFTW_UNALIGNED);
     fftw_complex* in = (fftw_complex*) MULTIDIM_ARRAY(src2);
     
     fftw_execute_dft_c2r(plan.getBackward(), in, MULTIDIM_ARRAY(dest));
