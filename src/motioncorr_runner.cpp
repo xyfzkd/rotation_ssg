@@ -1729,8 +1729,9 @@ bool MotioncorrRunner::test(){
         RCTOC(TIMING_CPU_IFFT);
         diff(Iccs2(), Iccs());
     } else{
+        print_comp_image(Fccs);
         NewFFT::inverseFourierTransform(Fccs, Iccs());
-        printf("run on cpu\n");
+        print_real_image(Iccs());
     }
 #ifdef TIMING
     timer.printTimes(false);
