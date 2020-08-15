@@ -25,6 +25,7 @@
 #include "src/args.h"
 #include <string.h>
 #include <math.h>
+#include "src/acc/acc_alignPatch.h"
 
 pthread_mutex_t NewFFT::fftw_plan_mutex_new = PTHREAD_MUTEX_INITIALIZER;
 
