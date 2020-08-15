@@ -49,10 +49,11 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 void rand_comp(MultidimArray<fComplex>& s){
     fComplex* ptr=NULL;
     long int n;
-    FOR_ALL_DIRECT_ELEMENTS_IN_MULTIDIMARRAY_ptr(s,n,ptr)
-            (*ptr)((float) (rnd_unif(0, 1)),(float) (rnd_unif(0, 1)));
-//    (*ptr).real = (float) (rnd_unif(0, 1));
-//    (*ptr).imag = (float) (rnd_unif(0, 1));
+    FOR_ALL_DIRECT_ELEMENTS_IN_MULTIDIMARRAY_ptr(s,n,ptr){
+        (*ptr).real = (float) (rnd_unif(0, 1));
+        (*ptr).imag = (float) (rnd_unif(0, 1));
+    }
+
 
 #ifdef PRINTCOMP
     for (int i=0; i < 16; i++){
