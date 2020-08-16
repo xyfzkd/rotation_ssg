@@ -143,7 +143,7 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
     Timer timer1;
         int TIMING_GPU_MALLOC = timer1.setNew("GPU - malloc");
         int TIMING_GPU_MEMCPY = timer1.setNew("GPU - memcpy host to device");
-        int TIMING_APPLY_GAIN = timer1.setNew("apply gain");
+
 #else
 #define RCTIC(label)
 	#define RCTOC(label)
