@@ -162,7 +162,7 @@ public:
 
 */
 
-#include <cufftw.h>
+#include <fftw3.h>
 #include <tbb/spin_mutex.h>
 
 

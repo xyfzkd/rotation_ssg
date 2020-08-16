@@ -46,7 +46,7 @@
 #ifndef __RELIONFFTW_H
 #define __RELIONFFTW_H
 
-#include <cufftw.h>
+#include <fftw3.h>
 #include "src/multidim_array.h"
 #include "src/funcs.h"
 #include "src/tabfuncs.h"
