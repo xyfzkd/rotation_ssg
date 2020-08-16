@@ -168,6 +168,7 @@ void CuFFT::inverseFourierTransform(
         resizeRealToMatch(dest, src);
     }
     RCTOC(TIMING_GPU_RESIZE);
+    RCTIC(TIMING_GPU_MALLOC);
 
     MultidimArray<fComplex> src2 = src;
 
@@ -185,7 +186,7 @@ void CuFFT::inverseFourierTransform(
     cudaEventRecord(start,0);
 
 
-    RCTIC(TIMING_GPU_MALLOC);
+
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
 
@@ -203,9 +204,9 @@ void CuFFT::inverseFourierTransform(
     cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
     RCTOC(TIMING_GPU_MEMCPYHD);
 
+    RCTIC(TIMING_GPU_EXEC);
     cufftHandle planIn;
 
-    RCTIC(TIMING_GPU_EXEC);
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
 
