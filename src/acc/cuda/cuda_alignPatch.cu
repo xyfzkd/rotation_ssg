@@ -225,6 +225,10 @@ void CuFFT::inverseFourierTransform(
 
 //    diff(dest,dest);
 
+    //GET CALCULATION TIME
+    cudaEventRecord(stop,0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&elapsedTime,start,stop);
 
     RCTOC(TIMING_GPU_FINISH);
     printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
@@ -233,10 +237,6 @@ void CuFFT::inverseFourierTransform(
 #ifdef TIMING
     timer1.printTimes(false);
 #endif
-    //GET CALCULATION TIME
-    cudaEventRecord(stop,0);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&elapsedTime,start,stop);
 }
 
 //void CuFFT::inverseFourierTransformcpu(
