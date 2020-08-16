@@ -74,7 +74,7 @@ void print_real_image(MultidimArray<float>& s){
 
 /**********************************************************************/
 /* function for testing the resulting differences
- *          sum( abs(re1-re2) / (abs(re1+re2)+eps) )
+ *          sum( abs(re1-re2) / (abs(re1)+abs(re2)) )
  *
  * macros for traversing the same size MultidimArray, similar to src/multidim_array.h:234
  */
@@ -98,7 +98,7 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
     long int n;
     float diff = 0, eps=1e-8;
     DIFF_ptr(re1,re2,n,ptr1,ptr2){
-        diff += abs(*ptr1 - *ptr2) / (abs(*ptr1 + *ptr2) + eps);
+        diff += abs(*ptr1 - *ptr2) / (abs(*ptr1) + abs(*ptr2));
 #ifdef PRINTDIFF
         printf("N: %d: difference is %f\n", n, diff);
 #endif
