@@ -1729,9 +1729,10 @@ bool MotioncorrRunner::test(){
         diff(Iccs2(), Iccs());
     } else{
         print_comp_image(Fccs);
+        print_real_image(Iccs());
 
         NewFFT::inverseFourierTransform(Fccs, Iccs());
-//        print_real_image(Iccs());
+
     }
 #ifdef TIMING
     timer.printTimes(false);
