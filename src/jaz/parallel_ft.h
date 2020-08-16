@@ -21,7 +21,7 @@
 #ifndef PAR_FFTW_H
 #define PAR_FFTW_H
 
-#include <fftw3.h>
+#include <cufftw.h>
 #include "src/multidim_array.h"
 #include "src/funcs.h"
 #include "src/tabfuncs.h"
