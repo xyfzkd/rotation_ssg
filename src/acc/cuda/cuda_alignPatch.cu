@@ -218,7 +218,7 @@ void CuFFT::inverseFourierTransform(
     printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
 
 #ifdef TIMING
-    timer.printTimes(false);
+    timer1.printTimes(false);
 #endif
 }
 
