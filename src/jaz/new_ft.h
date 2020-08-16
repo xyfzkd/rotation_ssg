@@ -27,6 +27,7 @@
 #include "src/multidim_array.h"
 #include "src/jaz/t_complex.h"
 
+#define FFTW_ESTIMATE (1U << 6)
 /*
     Usage patterns:
 
