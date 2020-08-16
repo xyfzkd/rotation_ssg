@@ -136,13 +136,13 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
 /*******************************************************/
 #define TIMING
 #ifdef TIMING
-#define RCTIC(label) (timer.tic(label))
-#define RCTOC(label) (timer.toc(label))
+    #define RCTIC(label) (timer.tic(label))
+    #define RCTOC(label) (timer.toc(label))
 
-Timer timer;
-    int TIMING_GPU_MALLOC = timer.setNew("GPU - malloc");
-    int TIMING_GPU_MEMCPY = timer.setNew("GPU - memcpy host to device");
-    int TIMING_APPLY_GAIN = timer.setNew("apply gain");
+    Timer timer;
+        int TIMING_GPU_MALLOC = timer.setNew("GPU - malloc");
+        int TIMING_GPU_MEMCPY = timer.setNew("GPU - memcpy host to device");
+        int TIMING_APPLY_GAIN = timer.setNew("apply gain");
 
 void CuFFT::inverseFourierTransform(
         MultidimArray<fComplex>& src,
