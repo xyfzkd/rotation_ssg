@@ -147,6 +147,7 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
         int TIMING_GPU_EXEC = timer1.setNew("GPU - exec");
         int TIMING_GPU_MEMCPYDH = timer1.setNew("GPU - memcpy device to host");
         int TIMING_GPU_FINISH = timer1.setNew("GPU - free");
+        int TIMING_GPU_IFFT = timer.setNew("GPU - iFFT");
 
 #else
     #define RCTIC(label)
@@ -169,7 +170,7 @@ void CuFFT::inverseFourierTransform(
 //    cudaEventRecord(start,0);
 
 
-
+    RCTIC(TIMING_GPU_IFFT);
     RCTIC(TIMING_GPU_RESIZE);
     if (!areSizesCompatible(dest, src))
     {
@@ -232,7 +233,7 @@ void CuFFT::inverseFourierTransform(
 
     RCTOC(TIMING_GPU_FINISH);
 //    printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
-
+    RCTOC(TIMING_GPU_IFFT);
 
 #ifdef TIMING
     timer1.printTimes(false);
