@@ -1728,10 +1728,10 @@ bool MotioncorrRunner::test(){
         RCTOC(TIMING_CPU_IFFT);
         diff(Iccs2(), Iccs());
     } else{
-        print_comp_image(Fccs);
-        print_real_image(Iccs());
-
-        printf("#define FFTW_ESTIMATE (1U << 6), %d\n", 1U << 6);
+//        print_comp_image(Fccs);
+//        print_real_image(Iccs());
+//
+//        printf("#define FFTW_ESTIMATE (1U << 6), %d\n", 1U << 6);
 
         NewFFT::inverseFourierTransform(Fccs, Iccs());
 
