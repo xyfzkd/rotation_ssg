@@ -58,7 +58,7 @@
 #include <limits>
 
 // Intel MKL provides an FFTW-like interface, so this is enough.
-#include <cufftw.h>
+#include <fftw.h>
 #define RELION_ALIGNED_MALLOC fftw_malloc
 #define RELION_ALIGNED_FREE fftw_free
 
