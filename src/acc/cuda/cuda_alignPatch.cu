@@ -215,6 +215,7 @@ void CuFFT::inverseFourierTransform(
     cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
     RCTOC(TIMING_GPU_MEMCPYDH);
 
+    RCTIC(TIMING_GPU_FINISH);
     cufftDestroy(planIn);
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
@@ -225,7 +226,10 @@ void CuFFT::inverseFourierTransform(
     cudaEventRecord(stop,0);
     cudaEventSynchronize(stop);
     cudaEventElapsedTime(&elapsedTime,start,stop);
+
+    RCTOC(TIMING_GPU_FINISH);
     printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
+
 
 #ifdef TIMING
     timer1.printTimes(false);
