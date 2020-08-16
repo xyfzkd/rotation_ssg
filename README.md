@@ -458,3 +458,17 @@ align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
 	Iframes.resize(n_frames);
 	Fframes.resize(n_frames);
 	std::vector<RFLOAT> xshifts(n_frames), yshifts(n_frames);
+	
+	
+```
+In file included from /home/xyf/relion/src/multidim_array.h:61:0,
+                 from /home/xyf/relion/src/jaz/new_ft.h:27,
+                 from /home/xyf/relion/src/jaz/new_ft.cpp:21:
+/software/cuda-9.0/include/cufftw.h:73:0: warning: "FFTW_ESTIMATE" redefined [enabled by default]
+ #define FFTW_ESTIMATE           0x01
+ ^
+In file included from /home/xyf/relion/src/jaz/new_ft.h:24:0,
+                 from /home/xyf/relion/src/jaz/new_ft.cpp:21:
+/home/xyf/anaconda3/include/fftw3.h:491:0: note: this is the location of the previous definition
+ #define FFTW_ESTIMATE (1U << 6)
+```
