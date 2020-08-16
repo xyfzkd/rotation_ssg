@@ -472,3 +472,22 @@ In file included from /home/xyf/relion/src/jaz/new_ft.h:24:0,
 /home/xyf/anaconda3/include/fftw3.h:491:0: note: this is the location of the previous definition
  #define FFTW_ESTIMATE (1U << 6)
 ```
+
+
+```
+cpu
+align - prep weight                : 0.85 sec (1363 microsec/operation)
+align - make reference             : 5.421 sec (4245 microsec/operation)
+align - calc CCF (in thread)       : 3.455 sec (112 microsec/operation)
+align - iFFT CCF (in thread)       : 24.476 sec (798 microsec/operation)
+align - argmax CCF (in thread)     : 0.052 sec (1 microsec/operation)
+align - shift in Fourier space     : 7.923 sec (6204 microsec/operation)
+
+gpu
+align - prep weight                : 0.984 sec (1577 microsec/operation)
+align - make reference             : 5.694 sec (4459 microsec/operation)
+align - calc CCF (in thread)       : 4.75 sec (155 microsec/operation)
+align - iFFT CCF (in thread)       : 88.643 sec (2892 microsec/operation)
+align - argmax CCF (in thread)     : 0.203 sec (6 microsec/operation)
+align - shift in Fourier space     : 11.336 sec (8877 microsec/operation)
+```
