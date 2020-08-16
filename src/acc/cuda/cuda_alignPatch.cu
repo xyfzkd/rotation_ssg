@@ -141,11 +141,14 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
     #define RCTOC(label) (timer.toc(label))
 
     Timer timer1;
+        int TIMING_GPU_RESIZE = timer1.setNew("GPU - resize");
         int TIMING_GPU_MALLOC = timer1.setNew("GPU - malloc");
-        int TIMING_GPU_MEMCPY = timer1.setNew("GPU - memcpy host to device");
+        int TIMING_GPU_MEMCPYHD = timer1.setNew("GPU - memcpy host to device");
+        int TIMING_GPU_EXEC = timer1.setNew("GPU - exec");
+        int TIMING_GPU_MEMCPYDH = timer1.setNew("GPU - memcpy device to host");
 
 #else
-#define RCTIC(label)
+    #define RCTIC(label)
 	#define RCTOC(label)
 #endif
 
@@ -158,10 +161,12 @@ void CuFFT::inverseFourierTransform(
      * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
      * https://www.beechwood.eu/using-cufft/ time
      * */
+    RCTIC(TIMING_GPU_RESIZE);
     if (!areSizesCompatible(dest, src))
     {
         resizeRealToMatch(dest, src);
     }
+    RCTOC(TIMING_GPU_RESIZE);
 
     MultidimArray<fComplex> src2 = src;
 
@@ -178,6 +183,8 @@ void CuFFT::inverseFourierTransform(
     cudaEventCreate(&stop);
     cudaEventRecord(start,0);
 
+
+    RCTIC(TIMING_GPU_MALLOC);
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
 
@@ -189,21 +196,24 @@ void CuFFT::inverseFourierTransform(
 
     gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
     gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+    RCTOC(TIMING_GPU_MALLOC);
 
-
+    RCTIC(TIMING_GPU_MEMCPYHD);
     cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+    RCTOC(TIMING_GPU_MEMCPYHD);
 
     cufftHandle planIn;
 
-
+    RCTIC(TIMING_GPU_EXEC);
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
 
-
     cufftExecC2R(planIn, device_comp_data, device_real_data);
+    RCTOC(TIMING_GPU_EXEC);
 
-
+    RCTIC(TIMING_GPU_MEMCPYDH);
     cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
+    RCTOC(TIMING_GPU_MEMCPYDH);
 
     cufftDestroy(planIn);
     gpuErrchk(cudaFree(device_comp_data));
