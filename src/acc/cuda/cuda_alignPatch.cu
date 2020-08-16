@@ -147,7 +147,7 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
         int TIMING_GPU_EXEC = timer1.setNew("GPU - exec");
         int TIMING_GPU_MEMCPYDH = timer1.setNew("GPU - memcpy device to host");
         int TIMING_GPU_FINISH = timer1.setNew("GPU - free");
-        int TIMING_GPU_IFFT = timer.setNew("GPU - iFFT");
+        int TIMING_GPU_IFFT = timer1.setNew("GPU - iFFT");
 
 #else
     #define RCTIC(label)
