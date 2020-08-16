@@ -162,6 +162,14 @@ void CuFFT::inverseFourierTransform(
      * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
      * https://www.beechwood.eu/using-cufft/ time
      * */
+    float elapsedTime = 0;
+    cudaEvent_t start,stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start,0);
+
+
+
     RCTIC(TIMING_GPU_RESIZE);
     if (!areSizesCompatible(dest, src))
     {
@@ -177,13 +185,6 @@ void CuFFT::inverseFourierTransform(
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
 
-
-
-    float elapsedTime = 0;
-    cudaEvent_t start,stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
-    cudaEventRecord(start,0);
 
 
 
@@ -224,10 +225,6 @@ void CuFFT::inverseFourierTransform(
 
 //    diff(dest,dest);
 
-    //GET CALCULATION TIME
-    cudaEventRecord(stop,0);
-    cudaEventSynchronize(stop);
-    cudaEventElapsedTime(&elapsedTime,start,stop);
 
     RCTOC(TIMING_GPU_FINISH);
     printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
@@ -236,6 +233,10 @@ void CuFFT::inverseFourierTransform(
 #ifdef TIMING
     timer1.printTimes(false);
 #endif
+    //GET CALCULATION TIME
+    cudaEventRecord(stop,0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&elapsedTime,start,stop);
 }
 
 //void CuFFT::inverseFourierTransformcpu(
