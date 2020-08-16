@@ -1732,8 +1732,6 @@ bool MotioncorrRunner::test(){
         print_real_image(Iccs());
 
         NewFFT::inverseFourierTransform(Fccs, Iccs());
-        print_comp_image(Fccs);
-        print_real_image(Iccs());
 
     }
 #ifdef TIMING

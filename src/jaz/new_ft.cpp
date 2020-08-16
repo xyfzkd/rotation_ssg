@@ -236,7 +236,7 @@ void NewFFT::inverseFourierTransform(
 		MultidimArray<fComplex> src2 = src;
 
 		FloatPlan p(dest, src2);
-
+        print_comp_image(src2);
 		_inverseFourierTransform(src2, dest, p, normalization);
 	}
 	else
