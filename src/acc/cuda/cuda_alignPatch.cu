@@ -163,14 +163,13 @@ void CuFFT::inverseFourierTransform(
      * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
      * https://www.beechwood.eu/using-cufft/ time
      * */
-//    float elapsedTime = 0;
-//    cudaEvent_t start,stop;
-//    cudaEventCreate(&start);
-//    cudaEventCreate(&stop);
-//    cudaEventRecord(start,0);
+    float elapsedTime = 0;
+    cudaEvent_t start,stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+    cudaEventRecord(start,0);
 
 
-    RCTIC(TIMING_GPU_IFFT_IN);
     RCTIC(TIMING_GPU_RESIZE);
     if (!areSizesCompatible(dest, src))
     {
@@ -215,7 +214,6 @@ void CuFFT::inverseFourierTransform(
 
     cufftExecC2R(planIn, device_comp_data, device_real_data);
     RCTOC(TIMING_GPU_EXEC);
-    RCTOC(TIMING_GPU_IFFT_IN);
 
     RCTIC(TIMING_GPU_MEMCPYDH);
     cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
@@ -234,7 +232,7 @@ void CuFFT::inverseFourierTransform(
 //    cudaEventElapsedTime(&elapsedTime,start,stop);
 
     RCTOC(TIMING_GPU_FINISH);
-//    printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
+    printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
 
 
 #ifdef TIMING
