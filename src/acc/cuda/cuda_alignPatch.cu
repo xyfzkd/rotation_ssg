@@ -10,7 +10,7 @@
 #include <string.h>
 #include <math.h>
 #include "device_launch_parameters.h"
-#include "time.h"
+//#include "time.h"
 #include "src/multidim_array.h"
 #include "src/time.h"
 
