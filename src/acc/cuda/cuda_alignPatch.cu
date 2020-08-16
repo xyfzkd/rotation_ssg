@@ -137,8 +137,8 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
 /*******************************************************/
 #define TIMING
 #ifdef TIMING
-    #define RCTIC(label) (timer.tic(label))
-    #define RCTOC(label) (timer.toc(label))
+    #define RCTIC(label) (timer1.tic(label))
+    #define RCTOC(label) (timer1.toc(label))
 
     Timer timer1;
         int TIMING_GPU_RESIZE = timer1.setNew("GPU - resize");
