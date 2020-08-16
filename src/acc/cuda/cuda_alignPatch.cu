@@ -135,7 +135,7 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
  * param@ dest: MultidimArray<float>, using array part
  */
 /*******************************************************/
-//#define TIMING
+#define TIMING
 #ifdef TIMING
     #define RCTIC(label) (timer1.tic(label))
     #define RCTOC(label) (timer1.toc(label))
