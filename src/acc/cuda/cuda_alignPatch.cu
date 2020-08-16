@@ -177,7 +177,7 @@ void CuFFT::inverseFourierTransform(
         resizeRealToMatch(dest, src);
     }
     RCTOC(TIMING_GPU_RESIZE);
-    RCTIC(TIMING_GPU_MALLOC);
+
 
     MultidimArray<fComplex> src2 = src;
 
@@ -195,6 +195,7 @@ void CuFFT::inverseFourierTransform(
     /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
      * Are cufftComplex and fftwf_complex interchangable? yes!
      */
+    RCTIC(TIMING_GPU_MALLOC);
     host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
     host_real_data = MULTIDIM_ARRAY(dest);
 
