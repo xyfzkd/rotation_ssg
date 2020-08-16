@@ -27,7 +27,6 @@
 #include "src/multidim_array.h"
 #include "src/jaz/t_complex.h"
 
-#define FFTW_ESTIMATE (1U << 6)
 /*
     Usage patterns:
 
@@ -236,12 +235,12 @@ class NewFFT
                        (cf. http://www.fftw.org/fftw3_doc/Planner-Flags.html)
                 */
                 DoublePlan(int w, int h = 1, int d = 1,
-                           unsigned int flags = FFTW_ESTIMATE);
+                           unsigned int flags = (1U << 6));
 
                 // constructor for array-specific plans
                 DoublePlan( MultidimArray<double>& real,
                             MultidimArray<dComplex>& complex,
-                            unsigned int flags = FFTW_ESTIMATE);
+                            unsigned int flags = (1U << 6));
 
                 fftw_plan getForward() const
                 {
@@ -304,11 +303,11 @@ class NewFFT
             public:
 
                 FloatPlan(int w, int h = 1, int d = 1,
-                          unsigned int flags = FFTW_ESTIMATE);
+                          unsigned int flags = (1U << 6));
 
                 FloatPlan(MultidimArray<float>& real,
                           MultidimArray<fComplex>& complex,
-                          unsigned int flags = FFTW_ESTIMATE);
+                          unsigned int flags = (1U << 6));
 
                 fftwf_plan getForward() const
                 {
