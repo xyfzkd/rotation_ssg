@@ -492,8 +492,8 @@ void MotioncorrRunner::run()
 	if (verb > 0)
 		progress_bar(fn_micrographs.size());
 
-//	// Make a logfile with the shifts in pdf format and write output STAR files
-//	generateLogFilePDFAndWriteStarFiles();
+	// Make a logfile with the shifts in pdf format and write output STAR files
+	generateLogFilePDFAndWriteStarFiles();
 
 #ifdef TIMING
         timer.printTimes(false);
