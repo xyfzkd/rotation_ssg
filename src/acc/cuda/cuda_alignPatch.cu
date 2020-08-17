@@ -270,7 +270,11 @@ void CuFFT::inverseFourierTransform(
 //
 //
 
-CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size){
+CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size)
+:   dest(d),
+    src(s)
+{
+    this.replan = (goodsize != size);
     dest = d;
     src = s;
     replan = goodsize != size;
