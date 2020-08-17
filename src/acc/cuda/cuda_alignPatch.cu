@@ -144,6 +144,7 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
         int TIMING_GPU_RESIZE = timer1.setNew("GPU - resize");
         int TIMING_GPU_MALLOC = timer1.setNew("GPU - malloc");
         int TIMING_GPU_MEMCPYHD = timer1.setNew("GPU - memcpy host to device");
+        int TIMING_GPU_PLAN = timer1.setNew("GPU - plan");
         int TIMING_GPU_EXEC = timer1.setNew("GPU - exec");
         int TIMING_GPU_MEMCPYDH = timer1.setNew("GPU - memcpy device to host");
         int TIMING_GPU_FINISH = timer1.setNew("GPU - free");
@@ -207,12 +208,15 @@ void CuFFT::inverseFourierTransform(
     cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
     RCTOC(TIMING_GPU_MEMCPYHD);
 
-    RCTIC(TIMING_GPU_EXEC);
+
+    RCTIC(TIMING_GPU_PLAN);
     cufftHandle planIn;
 
     /* Create a 2D FFT plan. */
     cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
+    RCTOC(TIMING_GPU_PLAN);
 
+    RCTIC(TIMING_GPU_EXEC);
     cufftExecC2R(planIn, device_comp_data, device_real_data);
     RCTOC(TIMING_GPU_EXEC);
 
