@@ -416,3 +416,9 @@ align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
 
 ## plan 和 malloc提到循环外面
 我测试提到循环外面对结果的影响，改变plan的参数，发现结果变化了
+
+
+
+192*192 48 * 26 1248
+972*972 1320
+2544
