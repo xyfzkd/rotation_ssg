@@ -1710,9 +1710,9 @@ bool MotioncorrRunner::test(){
      Iccs().reshape(ccf_ny, ccf_nx);
      Fccs.reshape(Fref);
      */
-    Iccs().reshape(972, 972);
-    Fccs.reshape(972, 487);
-    Iccs2().reshape(972, 972);
+    Iccs().reshape(9720, 9720);
+    Fccs.reshape(9720, 4870);
+    Iccs2().reshape(9720, 9720);
 
     rand_comp(Fccs);
 
