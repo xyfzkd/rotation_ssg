@@ -289,7 +289,7 @@ CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size)
 
 }
 
-CuFFT::CuFFT(){
+CuFFT::CuFFT(void){
 }
 
 
@@ -301,9 +301,21 @@ CuFFT::~CuFFT(){
     gpuErrchk(cudaFree(device_real_data));
 //    printf();
 }
+CuFFT::Plan::Plan(int w, int h, int d)
+:   w(w),h(h),d(d){
+    std::vector<int> N(0);
+    if (d > 1) N.push_back(d);
+    if (h > 1) N.push_back(h);
+    N.push_back(w);
+
+    /* 1. create a 2D FFT plan. */
+    RCTIC(TIMING_GPU_PLAN);
+    cufftPlan2d(backward,  N[0], N[1], CUFFT_C2R);
+    RCTOC(TIMING_GPU_PLAN);
+}
 
 
-bool CuFFT::ifft{
+bool CuFFT::ifft(){
         /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
          * Are cufftComplex and fftwf_complex interchangable? yes!
          */
@@ -314,11 +326,7 @@ bool CuFFT::ifft{
 
             cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
 
-            /* 1. create a 2D FFT plan. */
-            RCTIC(TIMING_GPU_PLAN);
-            cufftHandle planIn;
-            cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
-            RCTOC(TIMING_GPU_PLAN);
+
         }else{
             /* 0. malloced and memcpy */
             cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);

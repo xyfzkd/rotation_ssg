@@ -32,6 +32,21 @@ public:
             MultidimArray<fComplex>& src,
             MultidimArray<float>& dest);
 
+    class Plan{
+    public:
+        Plan(int w, int h = 1, int d = 1);
+        ~Plan(){
+            cufftDestroy(backward);
+        }
+
+    private:
+        cufftHandle backward;
+        int w, h, d;
+    };
+
+
+
+
     template<class T>
     static bool areSizesCompatible(
             const MultidimArray<T>& real,
