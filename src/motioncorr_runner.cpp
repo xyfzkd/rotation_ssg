@@ -1723,7 +1723,7 @@ bool MotioncorrRunner::test(){
         RCTOC(TIMING_CPU_IFFT);
 
         RCTIC(TIMING_GPU_IFFT);
-//        print_comp_image(Fccs);
+        print_comp_image(Fccs);
         CuFFT::inverseFourierTransform(Fccs, Iccs());
         RCTOC(TIMING_GPU_IFFT);
 
