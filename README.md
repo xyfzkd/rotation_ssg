@@ -413,3 +413,6 @@ align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
 
 单个循环gpu要比cpu慢，但是加大矩阵大小后gpu完胜，觉得前景十分黑暗。
 和师兄一番交流后，事实上，gpu的思路可能不是我写的那样。
+
+## plan 和 malloc提到循环外面
+我测试提到循环外面对结果的影响，改变plan的参数，发现结果变化了
