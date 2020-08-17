@@ -213,7 +213,7 @@ void CuFFT::inverseFourierTransform(
     cufftHandle planIn;
 
     /* Create a 2D FFT plan. */
-    cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
+    cufftPlan2d(&planIn,  100000, 100000, CUFFT_C2R);
     RCTOC(TIMING_GPU_PLAN);
 
     RCTIC(TIMING_GPU_EXEC);

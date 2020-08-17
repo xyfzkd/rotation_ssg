@@ -395,132 +395,21 @@ align - argmax CCF (in thread)     : 0.072 sec (2 microsec/operation)
 align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
 ```
 
-	FileName fn_mic = mic.getMovieFilename();
-	FileName fn_avg = getOutputFileNames(fn_mic);
-	FileName fn_avg_noDW = fn_avg.withoutExtension() + "_noDW.mrc";
-	FileName fn_log = fn_avg.withoutExtension() + ".log";
-	FileName fn_ps = fn_avg.withoutExtension() + "_PS.mrc";
-	std::ofstream logfile;
-	logfile.open(fn_log);
+# 正确性
+![](https://i.loli.net/2020/08/17/S59YnsIV2otv4ei.png)
 
-	// EER related things
-	// TODO: will be refactored
-	EERRenderer renderer;
-	const bool isEER = EERRenderer::isEER(mic.getMovieFilename());
-
-	int n_io_threads = n_threads;
-	logfile << "Working on " << fn_mic << " with " << n_threads << " thread(s)." << std::endl << std::endl;
-	if (max_io_threads > 0 && n_io_threads > max_io_threads)
-	{
-		n_io_threads = max_io_threads;
-		logfile << "Limitted the number of IO threads per movie to " << n_io_threads << " thread(s)." << std::endl;
-	}
-
-	Image<float> Ihead, Igain, Iref;
-	std::vector<MultidimArray<fComplex> > Fframes;
-	std::vector<Image<float> > Iframes;
-	std::vector<int> frames; // 0-indexed
-
-	RFLOAT output_angpix = angpix * bin_factor;
-	RFLOAT prescaling = 1;
-
-	const int hotpixel_sigma = 6;
-	const int fit_rmsd_threshold = 10; // px
-	int nx, ny, nn;
-
-	// Check image size
-	if (!isEER)
-	{
-		Ihead.read(fn_mic, false, -1, false, true); // select_img -1, mmap false, is_2D true
-		nx = XSIZE(Ihead()); ny = YSIZE(Ihead()); nn = NSIZE(Ihead());
-	}
-	else
-	{
-		renderer.read(fn_mic, eer_upsampling);
-		nx = renderer.getWidth(); ny = renderer.getHeight();
-		nn = renderer.getNFrames() / eer_grouping; // remaining frames are truncated
-	}
-
-	// Which frame to use?
-	logfile << "Movie size: X = " << nx << " Y = " << ny << " N = " << nn << std::endl;
-	logfile << "Frames to be used:";
-	for (int i = 0; i < nn; i++) {
-		// For users, all numbers are 1-indexed. Internally they are 0-indexed.
-		int frame = i + 1;
-		if (frame < first_frame_sum) continue;
-		if (last_frame_sum > 0 && frame > last_frame_sum) continue;
-		frames.push_back(i);
-		logfile << " " << frame;
-	}
-	logfile << std::endl;
-
-	const int n_frames = frames.size();
-	Iframes.resize(n_frames);
-	Fframes.resize(n_frames);
-	std::vector<RFLOAT> xshifts(n_frames), yshifts(n_frames);
-	
-	
-```
-In file included from /home/xyf/relion/src/multidim_array.h:61:0,
-                 from /home/xyf/relion/src/jaz/new_ft.h:27,
-                 from /home/xyf/relion/src/jaz/new_ft.cpp:21:
-/software/cuda-9.0/include/cufftw.h:73:0: warning: "FFTW_ESTIMATE" redefined [enabled by default]
- #define FFTW_ESTIMATE           0x01
- ^
-In file included from /home/xyf/relion/src/jaz/new_ft.h:24:0,
-                 from /home/xyf/relion/src/jaz/new_ft.cpp:21:
-/home/xyf/anaconda3/include/fftw3.h:491:0: note: this is the location of the previous definition
- #define FFTW_ESTIMATE (1U << 6)
-```
+* 修复了以下
+>>> 师兄，一个奇怪现象，我把这里cpu的代码第237的第一个参数改为src，如第一张图，这样就可以保证准确性，如第二张图，但是如果不修改，236行的操作会让src2的原本有值的前16个复数置为0，如第三张图，我觉得可能要梳理Floatplan的操作 明天我看看
+![](https://i.loli.net/2020/08/17/rJfXnZdkuA2lSCE.png)
 
 
-```
-cpu
-align - prep weight                : 0.85 sec (1363 microsec/operation)
-align - make reference             : 5.421 sec (4245 microsec/operation)
-align - calc CCF (in thread)       : 3.455 sec (112 microsec/operation)
-align - iFFT CCF (in thread)       : 24.476 sec (798 microsec/operation)
-align - argmax CCF (in thread)     : 0.052 sec (1 microsec/operation)
-align - shift in Fourier space     : 7.923 sec (6204 microsec/operation)
+# 速度
+单独一个ifft
 
-gpu
-align - prep weight                : 0.984 sec (1577 microsec/operation)
-align - make reference             : 5.694 sec (4459 microsec/operation)
-align - calc CCF (in thread)       : 4.75 sec (155 microsec/operation)
-align - iFFT CCF (in thread)       : 88.643 sec (2892 microsec/operation)
-align - argmax CCF (in thread)     : 0.203 sec (6 microsec/operation)
-align - shift in Fourier space     : 11.336 sec (8877 microsec/operation)
-```
+* 972*972
+![](https://i.loli.net/2020/08/17/f4G3RBmyIxAFM2Z.jpg)
+* 9720*9720
+![](https://i.loli.net/2020/08/17/84ELpXkyeMR5SvT.jpg)
 
-
-
-read gain                          : 0.167 sec (83871 microsec/operation)
-read movie                         : 0.436 sec (218457 microsec/operation)
-apply gain                         : 0.08 sec (40083 microsec/operation)
-initial sum                        : 0.158 sec (79409 microsec/operation)
-detect hot pixels                  : 0.064 sec (32373 microsec/operation)
-fix defects                        : 0.036 sec (18280 microsec/operation)
-global FFT                         : 2.517 sec (1258618 microsec/operation)
-power spectrum                     : 4.743 sec (2371723 microsec/operation)
-power - sum                        : 1.166 sec (583409 microsec/operation)
-power - square                     : 3.03 sec (1515331 microsec/operation)
-power - crop                       : 0.026 sec (13248 microsec/operation)
-power - resize                     : 0.507 sec (253895 microsec/operation)
-global alignment                   : 3.977 sec (1988761 microsec/operation)
-global iFFT                        : 2.939 sec (1469576 microsec/operation)
-prepare patch                      : 2.821 sec (56435 microsec/operation)
-prep patch - clip (in thread)      : 5.144 sec (15731 microsec/operation)
-prep patch - FFT (in thread)       : 37.287 sec (31098 microsec/operation)
-patch alignment                    : 12.184 sec (243685 microsec/operation)
-align - prep weight                : 0.071 sec (1374 microsec/operation)
-align - make reference             : 0.772 sec (7290 microsec/operation)
-align - calc CCF (in thread)       : 0.275 sec (108 microsec/operation)
-align - iFFT CCF (in thread)       : 13.995 sec (5501 microsec/operation)
-align - argmax CCF (in thread)     : 0.013 sec (5 microsec/operation)
-align - shift in Fourier space     : 1.024 sec (9662 microsec/operation)
-fit polynomial                     : 0.005 sec (2727 microsec/operation)
-dose weighting                     : 3.482 sec (1741399 microsec/operation)
-dw - calc weight                   : 0.836 sec (418471 microsec/operation)
-dw - iFFT                          : 2.645 sec (1322927 microsec/operation)
-real space interpolation           : 0.897 sec (448708 microsec/operation)
-binning                            : 0 sec (0 microsec/operation)
+单个循环gpu要比cpu慢，但是加大矩阵大小后gpu完胜，觉得前景十分黑暗。
+和师兄一番交流后，事实上，gpu的思路可能不是我写的那样。
