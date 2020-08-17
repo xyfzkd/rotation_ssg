@@ -4,7 +4,30 @@
 #include "src/jaz/t_complex.h"
 
 class CuFFT{
+private:
+    MultidimArray<fComplex>& src;
+    MultidimArray<fComplex> src2;
+    MultidimArray<float>& dest;
+    int goodsize = 0;
+
+    std::vector<int> N(0);
+
+    cufftComplex *host_comp_data, *device_comp_data;
+    cufftReal    *host_real_data, *device_real_data;
 public:
+    /* cufft construction: src, dest and goodsize parameters */
+    CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size);
+
+    /* cufft construction without parameters, implemented outside the loop to keep
+     * device parameters away freeing
+     * */
+    CuFFT();
+
+    ~CuFFT();
+
+    /* realization */
+    void ifft();
+
     static void inverseFourierTransform(
             MultidimArray<fComplex>& src,
             MultidimArray<float>& dest);

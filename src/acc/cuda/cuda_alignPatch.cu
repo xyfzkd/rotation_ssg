@@ -269,3 +269,68 @@ void CuFFT::inverseFourierTransform(
 //    N.push_back(dest.xdim);
 //
 //
+
+CuFFT::CuFFT((MultidimArray<fComplex>& s, MultidimArray<float>& d){
+    dest = d;
+    src = s;
+    replan = goodsize != size;
+    goodsize = size;
+
+    if (!areSizesCompatible(dest, src))
+        resizeRealToMatch(dest, src);
+
+    if (dest.zdim > 1) N.push_back(dest.zdim);
+    if (dest.ydim > 1) N.push_back(dest.ydim);
+    N.push_back(dest.xdim);
+
+    host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
+    host_real_data = MULTIDIM_ARRAY(dest);
+
+}
+
+CuFFT::CuFFT(){
+}
+
+
+CuFFT::~CuFFT(){
+    /* 4. delete plan */
+    RCTIC(TIMING_GPU_FINISH);
+    cufftDestroy(planIn);
+    gpuErrchk(cudaFree(device_comp_data));
+    gpuErrchk(cudaFree(device_real_data));
+//    printf();
+}
+
+
+bool CuFFT::ifft{
+        /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
+         * Are cufftComplex and fftwf_complex interchangable? yes!
+         */
+        if(replan){
+            /* 0. malloc and memcpy */
+            gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
+            gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+
+            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+
+            /* 1. create a 2D FFT plan. */
+            RCTIC(TIMING_GPU_PLAN);
+            cufftHandle planIn;
+            cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
+            RCTOC(TIMING_GPU_PLAN);
+        }else{
+            /* 0. malloced and memcpy */
+            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+        }
+        /* 2. exec */
+        RCTIC(TIMING_GPU_EXEC);
+        cufftExecC2R(planIn, device_comp_data, device_real_data);
+        RCTOC(TIMING_GPU_EXEC);
+
+        /* 3. result memcpy */
+        RCTIC(TIMING_GPU_MEMCPYDH);
+        cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
+        RCTOC(TIMING_GPU_MEMCPYDH);
+
+
+}
