@@ -218,7 +218,8 @@ void CuFFT::inverseFourierTransform(
 
     RCTIC(TIMING_GPU_EXEC);
     cufftExecC2R(planIn, device_comp_data, device_real_data);
-    printf("shape: %d, %d\n", N[0], N[1]);
+    static int a = 1;
+    printf("shape: %d, %d\n", N[0], N[1], a++);
     RCTOC(TIMING_GPU_EXEC);
 
     RCTIC(TIMING_GPU_MEMCPYDH);
