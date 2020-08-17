@@ -202,6 +202,7 @@ void CuFFT::inverseFourierTransform(
     printf("label\n");
     gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
     gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+    printf("label\n");
     RCTOC(TIMING_GPU_MALLOC);
 
     RCTIC(TIMING_GPU_MEMCPYHD);
