@@ -316,15 +316,15 @@ bool CuFFT::ifft(){
          */
         if(replan){
             /* 0. malloc and memcpy */
-            gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
-            gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+            gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*goodsize*goodsize));
+            gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1)));
 
-            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
 
 
         }else{
             /* 0. malloced and memcpy */
-            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
         }
         /* 2. exec */
         RCTIC(TIMING_GPU_EXEC);
