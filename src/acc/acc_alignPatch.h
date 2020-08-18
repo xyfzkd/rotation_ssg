@@ -10,6 +10,8 @@
 #include <string.h>
 #include <math.h>
 
+void CuFFT::Plan::Plan();
+
 class CuFFT{
 private:
     MultidimArray<fComplex>& src;
