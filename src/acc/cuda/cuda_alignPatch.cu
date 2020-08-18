@@ -327,11 +327,12 @@ void CuFFT::ifft(){
         /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
          * Are cufftComplex and fftwf_complex interchangable? yes!
          */
+
         if(replan){
             /* 0. malloc and memcpy */
             gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*goodsize*goodsize));
             gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1)));
-            Plan plan = new Plan(dest, src);
+            plan = new Plan(dest, src);
             cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
 
 

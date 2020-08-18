@@ -20,6 +20,7 @@ private:
 
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
+    Plan plan;
 public:
     /* cufft construction: src, dest and goodsize parameters */
     CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size);
@@ -32,6 +33,7 @@ public:
 
     /* realization */
     void ifft();
+
 
     static void inverseFourierTransform(
             MultidimArray<fComplex>& src,
