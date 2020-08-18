@@ -11,6 +11,26 @@
 #include <math.h>
 
 
+class Plan{
+public:
+    Plan(int w, int h = 1, int d = 1);
+    Plan(MultidimArray<float>& real,
+         MultidimArray<fComplex>& comp);
+
+    ~Plan(){
+        cufftDestroy(backward);
+    }
+
+
+    cufftHandle* getBackward() const
+    {
+        return (cufftHandle*) &backward;
+    }
+private:
+    int w, h, d;
+    cufftHandle backward;
+};
+
 
 class CuFFT{
 private:
@@ -22,8 +42,7 @@ private:
 
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
-    class Plan;
-    Plan plan = new Plan();
+    Plan plan;
 public:
     /* cufft construction: src, dest and goodsize parameters */
     CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size);
@@ -41,26 +60,6 @@ public:
     static void inverseFourierTransform(
             MultidimArray<fComplex>& src,
             MultidimArray<float>& dest);
-
-    class Plan{
-    public:
-        Plan(int w, int h = 1, int d = 1);
-        Plan(MultidimArray<float>& real,
-        MultidimArray<fComplex>& comp);
-
-        ~Plan(){
-            cufftDestroy(backward);
-        }
-
-
-        cufftHandle* getBackward() const
-        {
-            return (cufftHandle*) &backward;
-        }
-    private:
-        int w, h, d;
-        cufftHandle backward;
-    };
 
 
 
@@ -85,6 +84,11 @@ public:
     }
 
 };
+
+
+
+
+
 float diff(MultidimArray<float>& re1, MultidimArray<float>& re2);
 
 void rand_comp(MultidimArray<fComplex>& s);
