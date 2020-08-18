@@ -296,7 +296,7 @@ CuFFT::~CuFFT(){
     gpuErrchk(cudaFree(device_real_data));
 //    printf();
 }
-CuFFT::Plan::Plan(int w, int h, int d)
+Plan::Plan(int w, int h, int d)
 :   w(w),h(h),d(d){
     std::vector<int> N(0);
     if (d > 1) N.push_back(d);
@@ -309,7 +309,7 @@ CuFFT::Plan::Plan(int w, int h, int d)
     RCTOC(TIMING_GPU_PLAN);
 }
 
-CuFFT::Plan::Plan(MultidimArray<float>& real, MultidimArray<fComplex>& comp)
+Plan::Plan(MultidimArray<float>& real, MultidimArray<fComplex>& comp)
 :   w(real.xdim), h(real.ydim), d(real.zdim){
     std::vector<int> N(0);
     if (d > 1) N.push_back(d);
