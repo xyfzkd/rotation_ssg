@@ -35,7 +35,7 @@ private:
 class CuFFT{
 private:
     MultidimArray<fComplex>& src;
-    MultidimArray<fComplex> src2;
+    MultidimArray<fComplex>& src2;
     MultidimArray<float>& dest;
     int goodsize = 0;
     bool replan;
