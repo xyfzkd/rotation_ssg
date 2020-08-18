@@ -44,8 +44,8 @@ public:
             cufftDestroy(backward);
         }
 
-    private:
         cufftHandle backward;
+    private:
         int w, h, d;
     };
 
