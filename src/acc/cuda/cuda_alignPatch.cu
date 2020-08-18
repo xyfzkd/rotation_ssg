@@ -291,13 +291,26 @@ CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size)
 CuFFT::~CuFFT(){
     /* 4. delete plan */
     RCTIC(TIMING_GPU_FINISH);
-    ~Plan();
+//    ~Plan();
     gpuErrchk(cudaFree(device_comp_data));
     gpuErrchk(cudaFree(device_real_data));
 //    printf();
 }
 CuFFT::Plan::Plan(int w, int h, int d)
 :   w(w),h(h),d(d){
+    std::vector<int> N(0);
+    if (d > 1) N.push_back(d);
+    if (h > 1) N.push_back(h);
+    N.push_back(w);
+
+    /* 1. create a 2D FFT plan. */
+    RCTIC(TIMING_GPU_PLAN);
+    cufftPlan2d(getBackward(),  N[0], N[1], CUFFT_C2R);
+    RCTOC(TIMING_GPU_PLAN);
+}
+
+CuFFT::Plan::Plan(MultidimArray<float>& real, MultidimArray<fComplex>& comp)
+:   w(real.xdim), h(real.ydim), d(real.zdim){
     std::vector<int> N(0);
     if (d > 1) N.push_back(d);
     if (h > 1) N.push_back(h);
@@ -318,7 +331,7 @@ void CuFFT::ifft(){
             /* 0. malloc and memcpy */
             gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*goodsize*goodsize));
             gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1)));
-
+            Plan plan = new Plan(dest, src);
             cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
 
 
@@ -328,7 +341,7 @@ void CuFFT::ifft(){
         }
         /* 2. exec */
         RCTIC(TIMING_GPU_EXEC);
-        cufftExecC2R(Plan.backward, device_comp_data, device_real_data);
+        cufftExecC2R(plan.getBackward(), device_comp_data, device_real_data);
         RCTOC(TIMING_GPU_EXEC);
 
         /* 3. result memcpy */

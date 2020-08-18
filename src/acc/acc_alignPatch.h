@@ -40,6 +40,9 @@ public:
     class Plan{
     public:
         Plan(int w, int h = 1, int d = 1);
+        Plan(MultidimArray<float>& real,
+        MultidimArray<fComplex>& comp);
+
         ~Plan(){
             cufftDestroy(backward);
         }
@@ -47,7 +50,7 @@ public:
 
         cufftHandle* getBackward() const
         {
-            return &backward;
+            return (cufftHandle*) &backward;
         }
     private:
         int w, h, d;
