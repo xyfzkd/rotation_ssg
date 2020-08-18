@@ -4,6 +4,12 @@
 #include "src/jaz/t_complex.h"
 #include <stdlib.h>
 
+#include "src/macros.h"
+#include "src/fftw.h"
+#include "src/args.h"
+#include <string.h>
+#include <math.h>
+
 class CuFFT{
 private:
     MultidimArray<fComplex>& src;
