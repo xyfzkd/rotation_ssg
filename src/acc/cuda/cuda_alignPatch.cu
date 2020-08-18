@@ -289,8 +289,6 @@ CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size)
 
 }
 
-CuFFT::CuFFT(void){
-}
 
 
 CuFFT::~CuFFT(){

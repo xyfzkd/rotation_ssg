@@ -2,6 +2,7 @@
 #include "src/multidim_array.h"
 #include "src/multidim_array.h"
 #include "src/jaz/t_complex.h"
+#include <stdlib.h>
 
 class CuFFT{
 private:
@@ -21,7 +22,6 @@ public:
     /* cufft construction without parameters, implemented outside the loop to keep
      * device parameters away freeing
      * */
-    CuFFT();
 
     ~CuFFT();
 
