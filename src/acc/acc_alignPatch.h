@@ -23,7 +23,7 @@ private:
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
     class Plan;
-    Plan plan;
+    Plan plan = new Plan();
 public:
     /* cufft construction: src, dest and goodsize parameters */
     CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size);
