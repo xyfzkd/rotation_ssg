@@ -280,9 +280,6 @@ CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size)
     if (!areSizesCompatible(dest, src))
         resizeRealToMatch(dest, src);
 
-    if (dest.zdim > 1) N.push_back(dest.zdim);
-    if (dest.ydim > 1) N.push_back(dest.ydim);
-    N.push_back(dest.xdim);
 
     host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
     host_real_data = MULTIDIM_ARRAY(dest);

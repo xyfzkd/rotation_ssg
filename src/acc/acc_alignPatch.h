@@ -17,7 +17,6 @@ private:
     MultidimArray<float>& dest;
     int goodsize = 0;
     bool replan;
-    std::vector<int> N(0);
 
     cufftComplex *host_comp_data, *device_comp_data;
     cufftReal    *host_real_data, *device_real_data;
