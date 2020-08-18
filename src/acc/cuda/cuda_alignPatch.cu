@@ -305,12 +305,12 @@ CuFFT::Plan::Plan(int w, int h, int d)
 
     /* 1. create a 2D FFT plan. */
     RCTIC(TIMING_GPU_PLAN);
-    cufftPlan2d(&backward,  N[0], N[1], CUFFT_C2R);
+    cufftPlan2d(getBackward(),  N[0], N[1], CUFFT_C2R);
     RCTOC(TIMING_GPU_PLAN);
 }
 
 
-bool CuFFT::ifft(){
+void CuFFT::ifft(){
         /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
          * Are cufftComplex and fftwf_complex interchangable? yes!
          */

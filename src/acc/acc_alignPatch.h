@@ -44,9 +44,14 @@ public:
             cufftDestroy(backward);
         }
 
-        cufftHandle backward;
+
+        cufftHandle* getBackward() const
+        {
+            return &backward;
+        }
     private:
         int w, h, d;
+        cufftHandle backward;
     };
 
 
