@@ -341,7 +341,7 @@ void CuFFT::ifft(){
         }
         /* 2. exec */
         RCTIC(TIMING_GPU_EXEC);
-        cufftExecC2R(plan.getBackward(), device_comp_data, device_real_data);
+        cufftExecC2R(*plan.getBackward(), device_comp_data, device_real_data);
         RCTOC(TIMING_GPU_EXEC);
 
         /* 3. result memcpy */
