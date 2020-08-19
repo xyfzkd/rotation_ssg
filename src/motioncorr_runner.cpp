@@ -1357,7 +1357,8 @@ bool MotioncorrRunner::executeOwnMotionCorrection(Micrograph &mic) {
 	// TODO: Consider frame grouping in global alignment.
 	logfile << std::endl << "Global alignment:" << std::endl;
 	RCTIC(TIMING_GLOBAL_ALIGNMENT);
-	alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
+	if(do_gpu) alignPatchCuda(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
+	else alignPatch(Fframes, nx, ny, bfactor / (prescaling * prescaling), xshifts, yshifts, logfile);
 	RCTOC(TIMING_GLOBAL_ALIGNMENT);
 	for (int i = 0, ilim = xshifts.size(); i < ilim; i++) {
 		// Should be in the original pixel size
@@ -1435,7 +1436,8 @@ bool MotioncorrRunner::executeOwnMotionCorrection(Micrograph &mic) {
 				RCTOC(TIMING_PREP_PATCH);
 
 				RCTIC(TIMING_PATCH_ALIGN);
-				bool converged = alignPatch(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
+				if(do_gpu) bool converged = alignPatchCuda(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
+				else bool converged = alignPatch(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
 				RCTOC(TIMING_PATCH_ALIGN);
 				if (!converged) continue;
 
@@ -1912,6 +1914,208 @@ void MotioncorrRunner::realSpaceInterpolation_ThirdOrderPolynomial(Image <float>
 		}
 	}
 }
+
+bool MotioncorrRunner::alignPatchCuda(std::vector<MultidimArray<fComplex> > &Fframes, const int pnx, const int pny, const RFLOAT scaled_B, std::vector<RFLOAT> &xshifts, std::vector<RFLOAT> &yshifts, std::ostream &logfile) {
+    Image<float> Iccs;
+    MultidimArray<fComplex> Fref;
+    MultidimArray<fComplex> Fccs;
+    MultidimArray<float> weight;
+    std::vector<RFLOAT> cur_xshifts, cur_yshifts;
+    bool converged = false;
+
+    // Parameters TODO: make an option
+    int search_range = 50; // px
+    const RFLOAT tolerance = 0.5; // px
+    const RFLOAT EPS = 1e-15;
+
+    // Shifts within an iteration
+    const int n_frames = xshifts.size();
+    cur_xshifts.resize(n_frames);
+    cur_yshifts.resize(n_frames);
+
+    if (pny % 2 == 1 || pnx % 2 == 1) {
+        REPORT_ERROR("Patch size must be even");
+    }
+
+    // Calculate the size of down-sampled CCF
+    float ccf_requested_scale = ccf_downsample;
+    if (ccf_downsample <= 0) {
+        ccf_requested_scale = sqrt(-log(1E-8) / (2 * scaled_B)); // exp(-2 B max_dist^2) = 1E-8
+    }
+    int ccf_nx = findGoodSize(int(pnx * ccf_requested_scale)), ccf_ny = findGoodSize(int(pny * ccf_requested_scale));
+    if (ccf_nx > pnx) ccf_nx = pnx;
+    if (ccf_ny > pny) ccf_ny = pny;
+    if (ccf_nx % 2 == 1) ccf_nx++;
+    if (ccf_ny % 2 == 1) ccf_ny++;
+    const int ccf_nfx = ccf_nx / 2 + 1, ccf_nfy = ccf_ny;
+    const int ccf_nfy_half = ccf_ny / 2;
+    const RFLOAT ccf_scale_x = (RFLOAT)pnx / ccf_nx;
+    const RFLOAT ccf_scale_y = (RFLOAT)pny / ccf_ny;
+    search_range /= (ccf_scale_x > ccf_scale_y) ? ccf_scale_x : ccf_scale_y; // account for the increase of pixel size in CCF
+    if (search_range * 2 + 1 > ccf_nx) search_range = ccf_nx / 2 - 1;
+    if (search_range * 2 + 1 > ccf_ny) search_range = ccf_ny / 2 - 1;
+
+    const int nfx = XSIZE(Fframes[0]), nfy = YSIZE(Fframes[0]);
+    const int nfy_half = nfy / 2;
+
+    Fref.reshape(ccf_nfy, ccf_nfx);
+
+    Iccs().reshape(ccf_ny, ccf_nx);
+    Fccs.reshape(Fref);
+
+
+#ifdef DEBUG
+    std::cout << "Patch Size X = " << pnx << " Y  = " << pny << std::endl;
+    std::cout << "Fframes X = " << nfx << " Y = " << nfy << std::endl;
+    std::cout << "Fccf X = " << ccf_nfx << " Y = " << ccf_nfy << std::endl;
+    std::cout << "CCF crop request = " << ccf_requested_scale << ", actual X = " << 1 / ccf_scale_x << " Y = " << 1 / ccf_scale_y << std::endl;
+    std::cout << "CCF search range = " << search_range << std::endl;
+    std::cout << "Trajectory size: " << xshifts.size() << std::endl;
+#endif
+
+    // Initialize B factor weight
+    weight.reshape(Fref);
+    RCTIC(TIMING_PREP_WEIGHT);
+
+    for (int y = 0; y < ccf_nfy; y++) {
+        const int ly = (y > ccf_nfy_half) ? (y - ccf_nfy) : y;
+        RFLOAT ly2 = ly * (RFLOAT)ly / (nfy * (RFLOAT)nfy);
+
+        for (int x = 0; x < ccf_nfx; x++) {
+            RFLOAT dist2 = ly2 + x * (RFLOAT)x / (nfx * (RFLOAT)nfx);
+            DIRECT_A2D_ELEM(weight, y, x) = exp(- 2 * dist2 * scaled_B); // 2 for Fref and Fframe
+        }
+    }
+    RCTOC(TIMING_PREP_WEIGHT);
+
+    for (int iter = 1; iter	<= max_iter; iter++) {
+        RCTIC(TIMING_MAKE_REF);
+        Fref.initZeros();
+
+        for (int y = 0; y < ccf_nfy; y++) {
+            const int ly = (y > ccf_nfy_half) ? (y - ccf_nfy + nfy) : y;
+            for (int x = 0; x < ccf_nfx; x++) {
+                for (int iframe = 0; iframe < n_frames; iframe++) {
+                    DIRECT_A2D_ELEM(Fref, y, x) += DIRECT_A2D_ELEM(Fframes[iframe], ly, x);
+                }
+            }
+        }
+        RCTOC(TIMING_MAKE_REF);
+
+        /* do GPU */
+        CuFFT cufft;
+
+
+        for (int iframe = 0; iframe < n_frames; iframe++) {
+
+            RCTIC(TIMING_CCF_CALC);
+            for (int y = 0; y < ccf_nfy; y++) {
+                const int ly = (y > ccf_nfy_half) ? (y - ccf_nfy + nfy) : y;
+                for (int x = 0; x < ccf_nfx; x++) {
+                    DIRECT_A2D_ELEM(Fccs, y, x) = (DIRECT_A2D_ELEM(Fref, y, x) - DIRECT_A2D_ELEM(Fframes[iframe], ly, x)) *
+                                                  DIRECT_A2D_ELEM(Fframes[iframe], ly, x).conj() * DIRECT_A2D_ELEM(weight, y, x);
+                }
+            }
+            RCTOC(TIMING_CCF_CALC);
+
+            RCTIC(TIMING_CCF_IFFT);
+            cufft.reload(Fccs, Iccs());
+            RCTOC(TIMING_CCF_IFFT);
+
+            RCTIC(TIMING_CCF_FIND_MAX);
+            RFLOAT maxval = -1E30;
+            int posx = 0, posy = 0;
+            for (int y = -search_range; y <= search_range; y++) {
+                const int iy = (y < 0) ? ccf_ny + y : y;
+
+                for (int x = -search_range; x <= search_range; x++) {
+                    const int ix = (x < 0) ? ccf_nx + x : x;
+                    RFLOAT val = DIRECT_A2D_ELEM(Iccs(), iy, ix);
+//					std::cout << "(x, y) = " << x << ", " << y << ", (ix, iy) = " << ix << " , " << iy << " val = " << val << std::endl;
+                    if (val > maxval) {
+                        posx = x; posy = y;
+                        maxval = val;
+                    }
+                }
+            }
+
+            int ipx_n = posx - 1, ipx = posx, ipx_p = posx + 1, ipy_n = posy - 1, ipy = posy, ipy_p = posy + 1;
+            if (ipx_n < 0) ipx_n = ccf_nx + ipx_n;
+            if (ipx < 0) ipx = ccf_nx + ipx;
+            if (ipx_p < 0) ipx_p = ccf_nx + ipx_p;
+            if (ipy_n < 0) ipy_n = ccf_ny + ipy_n;
+            if (ipy < 0) ipy = ccf_ny + ipy;
+            if (ipy_p < 0) ipy_p = ccf_ny + ipy_p;
+
+            // Quadratic interpolation by Jasenko
+            RFLOAT vp, vn;
+            vp = DIRECT_A2D_ELEM(Iccs(), ipy, ipx_p);
+            vn = DIRECT_A2D_ELEM(Iccs(), ipy, ipx_n);
+            if (std::abs(vp + vn - 2.0 * maxval) > EPS) {
+                cur_xshifts[iframe] = posx - 0.5 * (vp - vn) / (vp + vn - 2.0 * maxval);
+            } else {
+                cur_xshifts[iframe] = posx;
+            }
+
+            vp = DIRECT_A2D_ELEM(Iccs(), ipy_p, ipx);
+            vn = DIRECT_A2D_ELEM(Iccs(), ipy_n, ipx);
+            if (std::abs(vp + vn - 2.0 * maxval) > EPS) {
+                cur_yshifts[iframe] = posy - 0.5 * (vp - vn) / (vp + vn - 2.0 * maxval);
+            } else {
+                cur_yshifts[iframe] = posy;
+            }
+            cur_xshifts[iframe] *= ccf_scale_x;
+            cur_yshifts[iframe] *= ccf_scale_y;
+#ifdef DEBUG_OWN
+            std::cout << "tid " << tid << " Frame " << 1 + iframe << ": raw shift x = " << posx << " y = " << posy << " cc = " << maxval << " interpolated x = " << cur_xshifts[iframe] << " y = " << cur_yshifts[iframe] << std::endl;
+#endif
+            RCTOC(TIMING_CCF_FIND_MAX);
+        }
+
+        // Set origin
+        RFLOAT x_sumsq = 0, y_sumsq = 0;
+        for (int iframe = n_frames - 1; iframe >= 0; iframe--) { // do frame 0 last!
+            cur_xshifts[iframe] -= cur_xshifts[0];
+            cur_yshifts[iframe] -= cur_yshifts[0];
+            x_sumsq += cur_xshifts[iframe] * cur_xshifts[iframe];
+            y_sumsq += cur_yshifts[iframe] * cur_yshifts[iframe];
+        }
+        cur_xshifts[0] = 0; cur_yshifts[0] = 0;
+
+        for (int iframe = 0; iframe < n_frames; iframe++) {
+            xshifts[iframe] += cur_xshifts[iframe];
+            yshifts[iframe] += cur_yshifts[iframe];
+//			std::cout << "Shift for Frame " << iframe << ": delta_x = " << cur_xshifts[iframe] << " delta_y = " << cur_yshifts[iframe] << std::endl;
+        }
+
+        // Apply shifts
+        // Since the image is not necessarily square, we cannot use the method in fftw.cpp
+        RCTIC(TIMING_FOURIER_SHIFT);
+#pragma omp parallel for num_threads(n_threads)
+        for (int iframe = 1; iframe < n_frames; iframe++) {
+            shiftNonSquareImageInFourierTransform(Fframes[iframe], -cur_xshifts[iframe] / pnx, -cur_yshifts[iframe] / pny);
+        }
+        RCTOC(TIMING_FOURIER_SHIFT);
+
+        // Test convergence
+        RFLOAT rmsd = std::sqrt((x_sumsq + y_sumsq) / n_frames);
+        logfile << " Iteration " << iter << ": RMSD = " << rmsd << " px" << std::endl;
+
+        if (rmsd < tolerance) {
+            converged = true;
+            break;
+        }
+    }
+
+#ifdef DEBUG_OWN
+    for (int iframe = 0; iframe < n_frames; iframe++) {
+		std::cout << iframe << " " << xshifts[iframe] << " " << yshifts[iframe] << std::endl;
+	}
+#endif
+
+    return converged;
+}
+
 
 bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes, const int pnx, const int pny, const RFLOAT scaled_B, std::vector<RFLOAT> &xshifts, std::vector<RFLOAT> &yshifts, std::ostream &logfile) {
 	Image<float> Iccs;
