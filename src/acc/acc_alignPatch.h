@@ -18,25 +18,25 @@ public:
          MultidimArray<fComplex>& comp);
 
     ~Plan(){
-        cufftDestroy(backward);
+        cufftDestroy(*backward);
     }
 
 
     cufftHandle* getBackward() const
     {
-        return (cufftHandle*) &backward;
+        return backward;
     }
 private:
     int w, h, d;
-    cufftHandle backward;
+    cufftHandle* backward;
 };
 
 
 class CuFFT{
 private:
-    MultidimArray<fComplex>& src;
-    MultidimArray<fComplex>& src2;
-    MultidimArray<float>& dest;
+    MultidimArray<fComplex> src;
+    MultidimArray<fComplex> src2;
+    MultidimArray<float> dest;
     int goodsize = 0;
     bool replan;
 
