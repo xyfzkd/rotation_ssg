@@ -2001,9 +2001,11 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 		RCTOC(TIMING_MAKE_REF);
 
 		/* do GPU */
-		if(do_gpu){
-            CuFFT cufft;
-		}
+//		if(do_gpu){
+//            CuFFT cufft;
+//		}
+		CuFFT cufft;
+
 		for (int iframe = 0; iframe < n_frames; iframe++) {
 
 			RCTIC(TIMING_CCF_CALC);
