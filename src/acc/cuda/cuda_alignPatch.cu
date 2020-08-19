@@ -15,6 +15,7 @@
 #include "src/time.h"
 
 #define PRINTCOMP
+#define TIMING
 
 /********************/
 /* CUDA ERROR CHECK */
