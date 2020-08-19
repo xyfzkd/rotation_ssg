@@ -253,7 +253,6 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
 //#endif
 //}
 
-CuFFT::CuFFT():replan(true),goodsize(0){};
 
 CuFFT::~CuFFT(){
     RCTIC(TIMING_GPU_FINISH);
@@ -262,7 +261,7 @@ CuFFT::~CuFFT(){
     gpuErrchk(cudaFree(device_real_data));
 };
 
-CuFFT::reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest){
+void CuFFT::reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest){
     RCTIC(TIMING_GPU_RESIZE);
     if (!areSizesCompatible(dest, src))
     {
@@ -306,7 +305,7 @@ CuFFT::reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest){
     }
 
     RCTIC(TIMING_GPU_EXEC);
-    cufftExecC2R(planIn, device_comp_data, device_real_data);
+    cufftExecC2R(plan, device_comp_data, device_real_data);
     static int a = 1;
     printf("shape: %d, %d, %d\n", N[0], N[1], a++);
     RCTOC(TIMING_GPU_EXEC);

@@ -41,7 +41,7 @@ private:
     cufftReal    *host_real_data, *device_real_data;
     cufftHandle plan;
 public:
-    CuFFT(){};
+    CuFFT():replan(true),goodsize(0){};
     ~CuFFT();
     void reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest);
 
