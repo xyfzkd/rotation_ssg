@@ -155,23 +155,114 @@ float diff(MultidimArray<float>& re1, MultidimArray<float>& re2){
 	#define RCTOC(label)
 #endif
 
-void CuFFT::inverseFourierTransform(
-        MultidimArray<fComplex>& src,
-        MultidimArray<float>& dest)
-{
-    /* http://www.orangeowlsolutions.com/archives/1173 arct
-     * https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1
-     * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
-     * https://www.beechwood.eu/using-cufft/ time
-     * */
-//    RCTIC(TIMING_GPU_IFFT_IN);
-//    float elapsedTime = 0;
-//    cudaEvent_t start,stop;
-//    cudaEventCreate(&start);
-//    cudaEventCreate(&stop);
-//    cudaEventRecord(start,0);
 
 
+
+
+
+
+//void CuFFT::inverseFourierTransform(
+//        MultidimArray<fComplex>& src,
+//        MultidimArray<float>& dest)
+//{
+//    /* http://www.orangeowlsolutions.com/archives/1173 arct
+//     * https://docs.nvidia.com/cuda/cufft/index.html#cufftdoublecomplex 4.2.1
+//     * https://docs.nvidia.com/cuda/cufft/index.html 3.9.3
+//     * https://www.beechwood.eu/using-cufft/ time
+//     * */
+////    RCTIC(TIMING_GPU_IFFT_IN);
+////    float elapsedTime = 0;
+////    cudaEvent_t start,stop;
+////    cudaEventCreate(&start);
+////    cudaEventCreate(&stop);
+////    cudaEventRecord(start,0);
+//
+//
+//    RCTIC(TIMING_GPU_RESIZE);
+//    if (!areSizesCompatible(dest, src))
+//    {
+//        resizeRealToMatch(dest, src);
+//    }
+//    RCTOC(TIMING_GPU_RESIZE);
+//
+//
+//    MultidimArray<fComplex> src2 = src;
+//
+//    std::vector<int> N(0);
+//    if (dest.zdim > 1) N.push_back(dest.zdim);
+//    if (dest.ydim > 1) N.push_back(dest.ydim);
+//    N.push_back(dest.xdim);
+//
+//
+//
+//
+//    cufftComplex *host_comp_data, *device_comp_data;
+//    cufftReal    *host_real_data, *device_real_data;
+//
+//    /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
+//     * Are cufftComplex and fftwf_complex interchangable? yes!
+//     */
+//    RCTIC(TIMING_GPU_MALLOC);
+//    host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
+//    host_real_data = MULTIDIM_ARRAY(dest);
+//
+//    gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
+//    gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+//    RCTOC(TIMING_GPU_MALLOC);
+//
+//    RCTIC(TIMING_GPU_MEMCPYHD);
+//    cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
+//    RCTOC(TIMING_GPU_MEMCPYHD);
+//
+//
+//    RCTIC(TIMING_GPU_PLAN);
+//    cufftHandle planIn;
+//
+//    /* Create a 2D FFT plan. */
+//    cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
+//    RCTOC(TIMING_GPU_PLAN);
+//
+//    RCTIC(TIMING_GPU_EXEC);
+//    cufftExecC2R(planIn, device_comp_data, device_real_data);
+//    static int a = 1;
+//    printf("shape: %d, %d, %d\n", N[0], N[1], a++);
+//    RCTOC(TIMING_GPU_EXEC);
+//
+//    RCTIC(TIMING_GPU_MEMCPYDH);
+//    cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
+//    RCTOC(TIMING_GPU_MEMCPYDH);
+//
+//    RCTIC(TIMING_GPU_FINISH);
+//    cufftDestroy(planIn);
+//    gpuErrchk(cudaFree(device_comp_data));
+//    gpuErrchk(cudaFree(device_real_data));
+//
+////    diff(dest,dest);
+//
+//    //GET CALCULATION TIME
+////    cudaEventRecord(stop,0);
+////    cudaEventSynchronize(stop);
+////    cudaEventElapsedTime(&elapsedTime,start,stop);
+////
+////    RCTOC(TIMING_GPU_FINISH);
+////    printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
+////    RCTOC(TIMING_GPU_IFFT_IN);
+//
+//#ifdef TIMING
+//    timer1.printTimes(false);
+//#endif
+//}
+
+CuFFT::CuFFT():replan(true),goodsize(0){};
+
+CuFFT::~CuFFT(){
+    RCTIC(TIMING_GPU_FINISH);
+    cufftDestroy(plan);
+    gpuErrchk(cudaFree(device_comp_data));
+    gpuErrchk(cudaFree(device_real_data));
+};
+
+CuFFT::reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest){
     RCTIC(TIMING_GPU_RESIZE);
     if (!areSizesCompatible(dest, src))
     {
@@ -186,35 +277,33 @@ void CuFFT::inverseFourierTransform(
     if (dest.zdim > 1) N.push_back(dest.zdim);
     if (dest.ydim > 1) N.push_back(dest.ydim);
     N.push_back(dest.xdim);
+    if(goodsize != N[1]){
+        goodsize = N[1];
+        replan = true;
+    }else{
+        replan = false;
+    }
 
-
-
-
-    cufftComplex *host_comp_data, *device_comp_data;
-    cufftReal    *host_real_data, *device_real_data;
-
-    /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
-     * Are cufftComplex and fftwf_complex interchangable? yes!
-     */
     RCTIC(TIMING_GPU_MALLOC);
     host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
     host_real_data = MULTIDIM_ARRAY(dest);
-
-    gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
-    gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+    if(replan){
+        gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*N[0]*N[1]));
+        gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1)));
+    }
     RCTOC(TIMING_GPU_MALLOC);
 
     RCTIC(TIMING_GPU_MEMCPYHD);
     cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*N[0]*(N[1]/2+1), cudaMemcpyHostToDevice);
     RCTOC(TIMING_GPU_MEMCPYHD);
 
+    if(replan){
+        RCTIC(TIMING_GPU_PLAN);
 
-    RCTIC(TIMING_GPU_PLAN);
-    cufftHandle planIn;
-
-    /* Create a 2D FFT plan. */
-    cufftPlan2d(&planIn,  N[0], N[1], CUFFT_C2R);
-    RCTOC(TIMING_GPU_PLAN);
+        /* Create a 2D FFT plan. */
+        cufftPlan2d(&plan,  N[0], N[1], CUFFT_C2R);
+        RCTOC(TIMING_GPU_PLAN);
+    }
 
     RCTIC(TIMING_GPU_EXEC);
     cufftExecC2R(planIn, device_comp_data, device_real_data);
@@ -225,27 +314,9 @@ void CuFFT::inverseFourierTransform(
     RCTIC(TIMING_GPU_MEMCPYDH);
     cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
     RCTOC(TIMING_GPU_MEMCPYDH);
-
-    RCTIC(TIMING_GPU_FINISH);
-    cufftDestroy(planIn);
-    gpuErrchk(cudaFree(device_comp_data));
-    gpuErrchk(cudaFree(device_real_data));
-
-//    diff(dest,dest);
-
-    //GET CALCULATION TIME
-//    cudaEventRecord(stop,0);
-//    cudaEventSynchronize(stop);
-//    cudaEventElapsedTime(&elapsedTime,start,stop);
-//
-//    RCTOC(TIMING_GPU_FINISH);
-//    printf("CUFFT Calculation COMPLETED IN : % 5.3f ms \n",elapsedTime);
-//    RCTOC(TIMING_GPU_IFFT_IN);
-
-#ifdef TIMING
-    timer1.printTimes(false);
-#endif
 }
+
+
 
 //void CuFFT::inverseFourierTransformcpu(
 //        MultidimArray<fComplex>& src,
@@ -270,84 +341,84 @@ void CuFFT::inverseFourierTransform(
 //
 //
 
-CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size){
-    dest = d;
-    src = s;
-    replan = goodsize != size;
-    goodsize = size;
-
-    if (!areSizesCompatible(dest, src))
-        resizeRealToMatch(dest, src);
-
-
-    host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
-    host_real_data = MULTIDIM_ARRAY(dest);
-
-}
-
-
-
-CuFFT::~CuFFT(){
-    /* 4. delete plan */
-    RCTIC(TIMING_GPU_FINISH);
-//    ~Plan();
-    gpuErrchk(cudaFree(device_comp_data));
-    gpuErrchk(cudaFree(device_real_data));
-//    printf();
-}
-Plan::Plan(int w, int h, int d)
-:   w(w),h(h),d(d){
-    std::vector<int> N(0);
-    if (d > 1) N.push_back(d);
-    if (h > 1) N.push_back(h);
-    N.push_back(w);
-
-    /* 1. create a 2D FFT plan. */
-    RCTIC(TIMING_GPU_PLAN);
-    cufftPlan2d(getBackward(),  N[0], N[1], CUFFT_C2R);
-    RCTOC(TIMING_GPU_PLAN);
-}
-
-Plan::Plan(MultidimArray<float>& real, MultidimArray<fComplex>& comp)
-:   w(real.xdim), h(real.ydim), d(real.zdim){
-    std::vector<int> N(0);
-    if (d > 1) N.push_back(d);
-    if (h > 1) N.push_back(h);
-    N.push_back(w);
-
-    /* 1. create a 2D FFT plan. */
-    RCTIC(TIMING_GPU_PLAN);
-    cufftPlan2d(getBackward(),  N[0], N[1], CUFFT_C2R);
-    RCTOC(TIMING_GPU_PLAN);
-}
+//CuFFT::CuFFT(MultidimArray<fComplex>& s, MultidimArray<float>& d, int size){
+//    dest = d;
+//    src = s;
+//    replan = goodsize != size;
+//    goodsize = size;
+//
+//    if (!areSizesCompatible(dest, src))
+//        resizeRealToMatch(dest, src);
+//
+//
+//    host_comp_data = (cufftComplex*) MULTIDIM_ARRAY(src2);
+//    host_real_data = MULTIDIM_ARRAY(dest);
+//
+//}
 
 
-void CuFFT::ifft(){
-        /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
-         * Are cufftComplex and fftwf_complex interchangable? yes!
-         */
 
-        if(replan){
-            /* 0. malloc and memcpy */
-            gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*goodsize*goodsize));
-            gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1)));
-            plan = new Plan(dest, src);
-            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
-
-
-        }else{
-            /* 0. malloced and memcpy */
-            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
-        }
-        /* 2. exec */
-        RCTIC(TIMING_GPU_EXEC);
-        cufftExecC2R(*plan.getBackward(), device_comp_data, device_real_data);
-        RCTOC(TIMING_GPU_EXEC);
-
-        /* 3. result memcpy */
-        RCTIC(TIMING_GPU_MEMCPYDH);
-        cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*goodsize*goodsize, cudaMemcpyDeviceToHost);
-        RCTOC(TIMING_GPU_MEMCPYDH);
-
-
-}
+//CuFFT::~CuFFT(){
+//    /* 4. delete plan */
+//    RCTIC(TIMING_GPU_FINISH);
+////    ~Plan();
+//    gpuErrchk(cudaFree(device_comp_data));
+//    gpuErrchk(cudaFree(device_real_data));
+////    printf();
+//}
+//Plan::Plan(int w, int h, int d)
+//:   w(w),h(h),d(d){
+//    std::vector<int> N(0);
+//    if (d > 1) N.push_back(d);
+//    if (h > 1) N.push_back(h);
+//    N.push_back(w);
+//
+//    /* 1. create a 2D FFT plan. */
+//    RCTIC(TIMING_GPU_PLAN);
+//    cufftPlan2d(getBackward(),  N[0], N[1], CUFFT_C2R);
+//    RCTOC(TIMING_GPU_PLAN);
+//}
+//
+//Plan::Plan(MultidimArray<float>& real, MultidimArray<fComplex>& comp)
+//:   w(real.xdim), h(real.ydim), d(real.zdim){
+//    std::vector<int> N(0);
+//    if (d > 1) N.push_back(d);
+//    if (h > 1) N.push_back(h);
+//    N.push_back(w);
+//
+//    /* 1. create a 2D FFT plan. */
+//    RCTIC(TIMING_GPU_PLAN);
+//    cufftPlan2d(getBackward(),  N[0], N[1], CUFFT_C2R);
+//    RCTOC(TIMING_GPU_PLAN);
+//}
+//
+//
+//void CuFFT::ifft(){
+//        /* https://stackoverflow.com/questions/16511526/cufft-and-fftw-data-structures-are-cufftcomplex-and-fftwf-complex-interchangabl
+//         * Are cufftComplex and fftwf_complex interchangable? yes!
+//         */
+//
+//        if(replan){
+//            /* 0. malloc and memcpy */
+//            gpuErrchk(cudaMalloc((void**)&device_real_data, sizeof(cufftReal)*goodsize*goodsize));
+//            gpuErrchk(cudaMalloc((void**)&device_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1)));
+//            plan = new Plan(dest, src);
+//            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
+//
+//
+//        }else{
+//            /* 0. malloced and memcpy */
+//            cudaMemcpy(device_comp_data, host_comp_data, sizeof(cufftComplex)*goodsize*(goodsize/2+1), cudaMemcpyHostToDevice);
+//        }
+//        /* 2. exec */
+//        RCTIC(TIMING_GPU_EXEC);
+//        cufftExecC2R(*plan.getBackward(), device_comp_data, device_real_data);
+//        RCTOC(TIMING_GPU_EXEC);
+//
+//        /* 3. result memcpy */
+//        RCTIC(TIMING_GPU_MEMCPYDH);
+//        cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*goodsize*goodsize, cudaMemcpyDeviceToHost);
+//        RCTOC(TIMING_GPU_MEMCPYDH);
+//
+//
+//}

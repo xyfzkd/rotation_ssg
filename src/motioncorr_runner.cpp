@@ -1999,7 +1999,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 		RCTOC(TIMING_MAKE_REF);
 
 		/* do GPU */
-        CuFFT cufft;
+        CuFFT cufft = new CuFFT();
 
 		for (int iframe = 0; iframe < n_frames; iframe++) {
 
@@ -2016,8 +2016,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 			RCTIC(TIMING_CCF_IFFT);
 
             if(do_gpu){
-                cufft = new CUFFT(Fccs, Iccs());
-                cufft.ifft();
+                cufft.reload(Fccs, Iccs());
             } else
                 NewFFT::inverseFourierTransform(Fccs, Iccs());
 
