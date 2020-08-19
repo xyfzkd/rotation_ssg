@@ -308,7 +308,7 @@ void CuFFT::reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest){
     RCTIC(TIMING_GPU_EXEC);
     cufftExecC2R(plan, device_comp_data, device_real_data);
     static int a = 1;
-    printf("shape: %d, %d, %d\n", N[0], N[1], a++);
+    printf("shape: %d, %d, %d, %d\n", N[0], N[1], a++, replan);
     RCTOC(TIMING_GPU_EXEC);
 
     RCTIC(TIMING_GPU_MEMCPYDH);

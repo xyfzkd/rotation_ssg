@@ -422,3 +422,18 @@ align - shift in Fourier space     : 15.6 sec (12187 microsec/operation)
 192*192 48 * 26 1248
 972*972 1320
 2544
+
+gpu
+align - prep weight                : 0.053 sec (1035 microsec/operation)
+align - make reference             : 0.815 sec (7695 microsec/operation)
+align - calc CCF (in thread)       : 0.274 sec (108 microsec/operation)
+align - iFFT CCF (in thread)       : 2.887 sec (1134 microsec/operation)
+align - argmax CCF (in thread)     : 0.012 sec (4 microsec/operation)
+align - shift in Fourier space     : 0.751 sec (7089 microsec/operation)
+
+align - prep weight                : 0.055 sec (1058 microsec/operation)
+align - make reference             : 0.733 sec (6915 microsec/operation)
+align - calc CCF (in thread)       : 0.205 sec (80 microsec/operation)
+align - iFFT CCF (in thread)       : 1.596 sec (627 microsec/operation)
+align - argmax CCF (in thread)     : 0.004 sec (1 microsec/operation)
+align - shift in Fourier space     : 0.905 sec (8543 microsec/operation)
