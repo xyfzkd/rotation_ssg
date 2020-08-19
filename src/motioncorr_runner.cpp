@@ -2004,7 +2004,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 //		if(do_gpu){
 //            CuFFT cufft;
 //		}
-		CuFFT cufft;
+        if(do_gpu) CuFFT cufft;
 
 		for (int iframe = 0; iframe < n_frames; iframe++) {
 
