@@ -1436,8 +1436,9 @@ bool MotioncorrRunner::executeOwnMotionCorrection(Micrograph &mic) {
 				RCTOC(TIMING_PREP_PATCH);
 
 				RCTIC(TIMING_PATCH_ALIGN);
-				if(do_gpu) bool converged = alignPatchCuda(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
-				else bool converged = alignPatch(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
+                bool converged;
+				if(do_gpu) converged = alignPatchCuda(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
+				else converged = alignPatch(Fpatches, x_end - x_start, y_end - y_start, bfactor / (prescaling * prescaling), local_xshifts, local_yshifts, logfile);
 				RCTOC(TIMING_PATCH_ALIGN);
 				if (!converged) continue;
 
