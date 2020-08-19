@@ -313,6 +313,9 @@ void CuFFT::reload(MultidimArray<fComplex>& src, MultidimArray<float>& dest){
     RCTIC(TIMING_GPU_MEMCPYDH);
     cudaMemcpy(host_real_data, device_real_data, sizeof(cufftReal)*N[0]*N[1], cudaMemcpyDeviceToHost);
     RCTOC(TIMING_GPU_MEMCPYDH);
+#ifdef TIMING
+    timer1.printTimes(false);
+#endif
 }
 
 
