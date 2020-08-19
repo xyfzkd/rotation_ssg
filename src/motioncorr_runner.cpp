@@ -1724,7 +1724,7 @@ bool MotioncorrRunner::test(){
 
         RCTIC(TIMING_GPU_IFFT);
 //        print_comp_image(Fccs);
-        CuFFT cufft = new CuFFT();
+        CuFFT cufft;
         cufft.reload(Fccs, Iccs());
         RCTOC(TIMING_GPU_IFFT);
 
@@ -1735,7 +1735,7 @@ bool MotioncorrRunner::test(){
 //
 //        printf("#define FFTW_ESTIMATE (1U << 6), %d\n", 1U << 6);
 
-        CuFFT cufft = new CuFFT();
+        CuFFT cufft;
         cufft.reload(Fccs, Iccs());
 
     }
@@ -2001,8 +2001,7 @@ bool MotioncorrRunner::alignPatch(std::vector<MultidimArray<fComplex> > &Fframes
 		RCTOC(TIMING_MAKE_REF);
 
 		/* do GPU */
-        CuFFT cufft = new CuFFT();
-
+        CuFFT cufft;
 		for (int iframe = 0; iframe < n_frames; iframe++) {
 
 			RCTIC(TIMING_CCF_CALC);
