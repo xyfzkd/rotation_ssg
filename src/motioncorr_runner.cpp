@@ -1724,7 +1724,8 @@ bool MotioncorrRunner::test(){
 
         RCTIC(TIMING_GPU_IFFT);
 //        print_comp_image(Fccs);
-        CuFFT::inverseFourierTransform(Fccs, Iccs());
+        CuFFT cufft = new CuFFT();
+        cufft.reload(Fccs, Iccs());
         RCTOC(TIMING_GPU_IFFT);
 
         diff(Iccs2(), Iccs());
@@ -1734,7 +1735,8 @@ bool MotioncorrRunner::test(){
 //
 //        printf("#define FFTW_ESTIMATE (1U << 6), %d\n", 1U << 6);
 
-        NewFFT::inverseFourierTransform(Fccs, Iccs());
+        CuFFT cufft = new CuFFT();
+        cufft.reload(Fccs, Iccs());
 
     }
 #ifdef TIMING
